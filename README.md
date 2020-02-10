@@ -1,4 +1,4 @@
-# Jagrati
+# Room Slot Booking
 FOSSEE - Room Slot Booking
 
 ## Requirements
