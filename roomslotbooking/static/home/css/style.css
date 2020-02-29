@@ -1,0 +1,304 @@
+@import url('https://fonts.googleapis.com/css?family=Montserrat:400,800');
+
+* {
+	box-sizing: border-box;
+}
+
+a {
+    text-decoration: none;
+    color: inherit; 
+}
+  
+body {
+    color: #fff;
+    font-family: 'Raleway';
+    text-align: center;
+    margin: 0px;
+    font-size: 8pt;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: hidden; 
+}
+
+.canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #252934; 
+}
+
+.button {
+    padding: 10px 20px;
+    border: 2px solid #fff;
+    box-sizing: inherit;
+    display: inline-block;
+    font-size: 13pt;
+    transition: all .5s;
+    cursor: pointer; 
+}
+    .button:hover {
+      background-color: #04C2C9;
+      border-color: #04C2C9; 
+    }
+    .button .mdi {
+      vertical-align: middle; 
+    }
+
+.flex {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center; 
+}
+
+.highlight {
+    color: #E31B6D; 
+}
+
+
+section {
+    padding: 70px 0 70px 0;
+    color: #616161;
+    line-height: 11pt;
+    position: relative; 
+}
+    section:nth-of-type(1) {
+        padding: 0 10px;
+        color: #fff;
+        height: calc(100vh + 0px); 
+        overflow: hidden;
+    }
+    section:nth-of-type(1) .highlight {
+        font-family: 'Raleway-semibold'; 
+    }
+    section:nth-of-type(1) .text {
+        margin: 0 0 20px 0;
+        font-size: 16pt;
+        line-height: 20pt;
+        z-index: 1;
+        pointer-events: none; 
+    }
+    section:nth-of-type(1) .button {
+        padding: 12px 15px 12px 15px;
+        position: relative;
+        margin-bottom: 53px; 
+    }
+    section:nth-of-type(1) .button .mdi {
+        transition: transform .3s;
+        position: absolute;
+        right: 15px;
+        top: 11px; 
+    }
+    section:nth-of-type(1) .button:hover .mdi {
+        transform: rotate(90deg); 
+    }
+
+/* Modal Starts Here */
+  
+/* The Modal (background) */
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0;
+    top: 0;
+
+    width: 100%; 
+    /* height: 100%; */
+    overflow: auto; /* Enable scroll if needed */
+    background-color: rgb(246,245,247); /* Fallback color */
+    background-color: rgba(246,245,247,0.8); /* Black w/ opacity */
+    /* padding-top: 60px; */
+
+    /* display: flex; */
+	justify-content: center;
+	align-items: center;
+	flex-direction: column;
+	font-family: 'Montserrat', sans-serif;
+	height: 100vh;
+	margin: -20px 0 50px;
+}
+
+.modal h1 {
+    font-weight: bold;
+    color: #000;
+}
+
+.modal p {
+    color: #000;
+	font-size: 14px;
+	font-weight: 100;
+	line-height: 20px;
+	letter-spacing: 0.5px;
+	margin: 20px 0 30px;
+}
+
+#login-form-info{
+    color: #ff0000;
+}
+
+.modal a {
+	color: #333;
+	font-size: 14px;
+	text-decoration: none;
+	margin: 15px 0;
+}
+
+.modal button {
+	border-radius: 20px;
+	border: 1px solid #FF4B2B;
+	background-color: #FF4B2B;
+	color: #FFFFFF;
+	font-size: 12px;
+	font-weight: bold;
+	padding: 12px 45px;
+	letter-spacing: 1px;
+	text-transform: uppercase;
+	transition: transform 80ms ease-in;
+    margin: 20px 0;
+    cursor: pointer;
+}
+
+.modal button:active {
+	transform: scale(0.95);
+}
+
+.modal button:focus {
+	outline: none;
+}
+
+.modal button.ghost {
+	background-color: transparent;
+	border-color: #FFFFFF;
+}
+
+.modal form {
+	background-color: #FFFFFF;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	flex-direction: column;
+	padding: 0 50px;
+	height: 100%;
+	text-align: center;
+}
+
+.modal input {
+	background-color: #eee;
+	border: none;
+	padding: 15px 15px;
+	margin: 15px 0;
+	width: 100%;
+}
+
+.modal .container {
+	background-color: #fff;
+	border-radius: 10px;
+  	box-shadow: 0 14px 28px rgba(0,0,0,0.25), 
+			0 10px 10px rgba(0,0,0,0.22);
+	position: relative;
+	overflow: hidden;
+	width: 768px;
+	max-width: 100%;
+	min-height: 480px;
+}
+
+.form-container {
+	position: absolute;
+	top: 0;
+	height: 100%;
+	transition: all 0.6s ease-in-out;
+}
+
+.sign-in-container {
+	left: 0;
+	width: 100%;
+	z-index: 2;
+}
+
+/* The Close Button (x) */
+.div-close{
+	position: relative;
+	width: 100%;
+}
+.close {
+    position: absolute;
+    right: 50px;
+    top: 20px;
+    color: #000;
+    font-size: 35px;
+    font-weight: bold;
+}
+  
+.close:hover,
+.close:focus {
+    color: red;
+    cursor: pointer;
+}
+  
+  
+/* Add Zoom Animation */
+.animate {
+    -webkit-animation: animatezoom 0.6s;
+    animation: animatezoom 0.6s
+}
+  
+@-webkit-keyframes animatezoom {
+    from {-webkit-transform: scale(0)} 
+    to {-webkit-transform: scale(1)}
+}
+    
+@keyframes animatezoom {
+    from {transform: scale(0)} 
+    to {transform: scale(1)}
+}
+  
+
+/* Modal Ends Here */
+
+
+@media screen and (min-width: 600px) {
+    body {
+        font-size: 12pt; 
+    }
+    section {
+        line-height: 18pt;
+        padding: 100px 0 130px 0; 
+    }
+        section .container {
+          padding: 0 10px; 
+        }
+        section:nth-of-type(1) .text {
+          font-size: 32pt;
+          line-height: 36pt; 
+        }
+        section:nth-of-type(1) .button {
+          padding: 12px 20px 12px 20px; 
+        }
+        section:nth-of-type(1) .button .mdi {
+            top: 16px; 
+        }
+}
+
+@media screen and (min-width: 960px) {
+    .button {
+        font-size: 16pt; 
+    }
+}
+
+@media screen and (max-width: 840px) {
+    .modal .container{
+        width: 85vw;
+    }
+}
+
+@media screen and (max-width: 600px) {
+    .modal form{
+        padding: 0 25px;
+    }
+    .close{
+        right: 25px;
+    }
+}
