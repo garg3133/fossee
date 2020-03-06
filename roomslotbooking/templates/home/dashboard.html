@@ -1,1 +1,119 @@
-Dashboard
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <h1 class="my-5">
+            Welcome to Room Slot Booking!
+        </h1>
+    </div>
+</div>
+
+<!-- <div class="container h-100">
+    <div class="row justify-content-center">
+        <div class="col-4 col-sm-3 bg-light py-5">
+            <ul class="nav nav-pills flex-column text-center">
+                <li class="nav-item m-auto">
+                    <a class="nav-link active" href="#section1">Book Room</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#section1">My Previous Bookings</a>
+                </li>
+            </ul>
+        </div>
+        <div class="col-8 col-sm-9">
+
+        </div>
+    </div>
+</div> -->
+
+<div class="container">
+    <ul class="nav nav-pills justify-content-center">
+        {% if user.profile.room_manager is False %}
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="pill" href="#book-room">Book Room</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#previous-bookings">My Previous Bookings</a>
+        </li>
+        {% else %}
+        <li class="nav-item">
+            <a class="nav-link active" data-toggle="pill" href="#home">Home</a>
+        </li>
+        <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Manage Rooms</a>
+            <div class="dropdown-menu">
+              <a class="dropdown-item" data-toggle="pill" href="#pre-booking">Pre-Booking Allowance</a>
+              <a class="dropdown-item" data-toggle="pill" href="#rooms">No. of Rooms</a>
+              <a class="dropdown-item" data-toggle="pill" href="#time-slots">Time Slots</a>
+            </div>
+          </li>
+        <!-- <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#manage">Manage Rooms</a>
+        </li> -->
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#summary">Bookings Summary</a>
+        </li>
+        <!-- <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#previous-bookings">My Previous Bookings</a>
+        </li> -->
+        {% endif %}
+    </ul>
+
+    <div class="tab-content">
+        {% if user.profile.room_manager is False %}
+        <div class="tab-pane container active" id="book-room">
+            You can book the rooms here..
+        </div>
+        <div class="tab-pane container fade" id="previous-bookings">
+            You can view your previous bookings here..
+        </div>
+        {% else %}
+        <div class="tab-pane container active" id="home">
+            <div class="row justify-content-center mt-5">
+                <div class="col-4">
+                    <p class="text-center">Current Allowance: {{ allowance }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane container fade" id="pre-booking">
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h3 class="mt-5 mb-3 text-center">Update Pre-Booking Allowance</h3>
+                        <p class="text-center">Current Allowance: {{ allowance }}</p>
+                        <input name="allowance" type="number" class="form-control" required>
+                        <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="allowance">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane container fade" id="rooms">
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h3 class="mt-5 mb-3 text-center">Update Rooms</h3>
+                        {% if rooms_context2 %}
+                        <p class="text-center">Current Rooms: {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
+                        {% else %}
+                        <p class="text-center">Current Rooms: {{ rooms_context1 }}</p>
+                        {% endif %}
+                        <input name="rooms" type="number" class="form-control" required>
+                        <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="rooms">Update</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="tab-pane container fade" id="time-slots">
+            Manage Time Slots here..
+        </div>
+        <div class="tab-pane container fade" id="summary">
+            Bookings Summary..
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% endblock %}
