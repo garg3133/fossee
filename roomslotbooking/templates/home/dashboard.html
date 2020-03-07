@@ -72,7 +72,18 @@
         <div class="tab-pane container active" id="home">
             <div class="row justify-content-center mt-5">
                 <div class="col-4">
-                    <p class="text-center">Current Allowance: {{ allowance }}</p>
+                    <p class="text-center"><span class="font-weight-bold">Current Allowance:</span> {{ allowance }}</p>
+                    
+                    {% if rooms_context2 %}
+                    <p class="text-center"><span class="font-weight-bold">Current Rooms:</span> {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
+                    {% else %}
+                    <p class="text-center"><span class="font-weight-bold">Current Rooms:</span> {{ rooms_context1 }}</p>
+                    {% endif %}
+
+                    <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
+                    {% for time_slot in time_slots_list %}
+                    <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -107,7 +118,24 @@
             </div>
         </div>
         <div class="tab-pane container fade" id="time-slots">
-            Manage Time Slots here..
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h3 class="mt-5 mb-3 text-center">Add Time Slots</h3>
+                        <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
+                        {% for time_slot in time_slots_list %}
+                        <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
+                        {% endfor %}
+                        <label for="timepicker1" class="mt-2">From</label>
+                        <input type="text" id="timepicker1" class="form-control" name="start_time" />
+                        <label for="timepicker2">To</label>
+                        <input type="text" id="timepicker2" class="form-control" name="end_time" />
+                        <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="time_slot">Add</button>
+                    </form>
+                </div>
+            </div>
+            
         </div>
         <div class="tab-pane container fade" id="summary">
             Bookings Summary..
@@ -116,4 +144,15 @@
     </div>
 </div>
 
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $('#timepicker1').timepicker({
+        uiLibrary: 'bootstrap4'
+    });
+    $('#timepicker2').timepicker({
+        uiLibrary: 'bootstrap4'
+    });
+</script>
 {% endblock %}

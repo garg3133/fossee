@@ -93,16 +93,44 @@ def dashboard(request):
                 rooms_context1 += str(rooms_old.rooms) + ' (Upto ' + str(rooms_old.end_date) + ')'
                 rooms_context2 += str(rooms.rooms) + ' (From ' + str(rooms.start_date) + ')'
         else:
-            rooms_context1 += str(rooms_old.rooms)
+            rooms_context1 += str(rooms.rooms)
     else:
         rooms_context1 = "Not yet updated!"
+
+    # Time Slots
+    time_slots_list = []
+    time_slot_dict = {}
+    time_slots = TimeSlot.objects.all().order_by('start_time')
+    for time_slot in time_slots:
+        if time_slot.end_date is None:
+            time_slot_dict['start_time'] = str(time_slot.start_time)
+            time_slot_dict['end_time'] = str(time_slot.end_time)
+            if time_slot.start_date > today_date:
+                time_slot_dict['remark'] = '(From ' + str(time_slot.start_date) + ')'
+            else:
+                time_slot_dict['remark'] = ''
+            time_slots_list.append(time_slot_dict.copy())
+        elif time_slot.end_date >= today_date:
+            time_slot_dict['start_time'] = str(time_slot.start_time)
+            time_slot_dict['end_time'] = str(time_slot.end_time)
+            time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
+            time_slots_list.append(time_slot_dict.copy())
 
     context = {
         'allowance' : allowance,
         'rooms_context1' : rooms_context1,
         'rooms_context2' : rooms_context2,
+        'time_slots_list' : time_slots_list,
     }
 
+    # To check overlaping of time slots
+    def time_overlaps(start_time1, end_time1, start_time2, end_time2):
+        if (start_time1 > start_time2 and start_time1 <end_time2) or (end_time1 > start_time2 and end_time1 <end_time2):
+            return True
+        else:
+            return False
+
+    # Handling Form Data from Templates
     if request.method == 'POST':
         if request.POST.get('submit') == 'allowance':
             new_allowance_days = request.POST['allowance']
@@ -117,7 +145,7 @@ def dashboard(request):
 
             return HttpResponseRedirect('/dashboard')
 
-        if request.POST.get('submit') == 'rooms':
+        elif request.POST.get('submit') == 'rooms':
             new_rooms = request.POST['rooms']
             last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
             if last_booking.exists():
@@ -150,6 +178,52 @@ def dashboard(request):
                 rooms_obj.save()
 
             return HttpResponseRedirect('/dashboard')
+
+        elif request.POST.get('submit') == 'time_slot':
+            new_start_time = request.POST['start_time']
+            new_end_time = request.POST['end_time']
+
+            new_start_time = datetime.strptime(new_start_time, '%H:%M').time()
+            new_end_time = datetime.strptime(new_end_time, '%H:%M').time()
+
+            last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
+            if last_booking.exists():
+                last_booking = last_booking[0]
+                last_booking_date = last_booking.date
+                new_time_slot_start_date = last_booking_date + timedelta(days=1)
+            else:
+                new_time_slot_start_date = today_date + timedelta(days=1)
+
+            overlapped_time_slots_list = []
+            overlapped_time_slot_dict = {}
+            time_slots = TimeSlot.objects.all().order_by('start_time')
+            for time_slot in time_slots:
+                if time_slot.end_date is None:
+                    if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
+                        overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
+                        overlapped_time_slot_dict['end_time'] = str(time_slot.end_time)
+                        if time_slot.start_date > today_date:
+                            overlapped_time_slot_dict['remark'] = '(From ' + str(time_slot.start_date) + ')'
+                        else:
+                            overlapped_time_slot_dict['remark'] = ''
+                        overlapped_time_slots_list.append(overlapped_time_slot_dict)
+                elif time_slot.end_date >= new_time_slot_start_date:
+                    if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
+                        overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
+                        overlapped_time_slot_dict['end_time'] = str(time_slot.end_time)
+                        overlapped_time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
+                        overlapped_time_slots_list.append(overlapped_time_slot_dict)
+
+            if len(overlapped_time_slots_list) == 0:
+                new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_time_slot_start_date)
+                new_time_slot.save()
+                return HttpResponseRedirect('/')
+            else:
+                context1 = {
+                    'overlapped_time_slots_list' : overlapped_time_slots_list,
+                }
+                context.update(context1)
+                return render(request, 'home/dashboard.html', context)
 
 
     return render(request, 'home/dashboard.html', context)
