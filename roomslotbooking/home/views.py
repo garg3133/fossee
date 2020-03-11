@@ -1,6 +1,6 @@
 from datetime import datetime, date, timedelta
 from django.shortcuts import render, redirect
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import (
@@ -136,8 +136,28 @@ def dashboard(request):
 
     # Handling Form Data from Templates
     if request.method == 'POST':
-        if request.POST.get('submit') == 'allowance':
+        if request.POST.get('submit') == 'book-room':
+            booking_date_str = request.POST['booked-on']
+            booking_room = request.POST['booking-room']
+            booking_time_slot_id = request.POST['booking-time-slot']
+
+            booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
+            booking_time_slot = TimeSlot.objects.get(pk=booking_time_slot_id)
+            room_manager = RoomManager.objects.filter(tenure_end=None)[0]
+
+            booking_obj = Booking(customer=request.user, date=booking_date, room=booking_room, time_slot=booking_time_slot, room_manager=room_manager)
+            booking_obj.save()
+
+            return HttpResponseRedirect('/')
+
+        elif request.POST.get('submit') == 'allowance':
             new_allowance_days = request.POST['allowance']
+            if int(new_allowance_days) < 0:
+                context1 = {
+                    'allowance_error' : "Please enter a valid Pre-Booking Allowance!",
+                }
+                context.update(context1)
+                return render(request, 'home/dashboard.html', context)
             old_allowance = PreBookingAllowance.objects.filter(end_date=None)
             if old_allowance.exists():
                 old_allowance = old_allowance[0]
@@ -307,6 +327,77 @@ def deleteTimeSlot(request, uid):
         time_slot.save()
 
     return redirect('dashboard')
+
+def bookingDateChangedAJAX(request):
+    booking_date_str = request.GET.get('booking_date', None)
+    booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
+
+    data = {}
+    today_date = date.today()
+
+    data['error'] = ''
+
+    if booking_date < today_date:
+        data['error'] = "*Please enter a valid date."
+        return JsonResponse(data)
+
+    # Pre-Booking Allowance Check
+    days_diff = (booking_date - today_date).days
+    allowance = PreBookingAllowance.objects.filter(end_date=None)
+    if allowance.exists() and days_diff > allowance[0].days:
+        data['error'] = "*You can only book for " + str(allowance[0].days) + " days in advance!"
+        return JsonResponse(data)
+
+    # Available Rooms
+    room_obj = Rooms.objects.filter(end_date=None)
+    if not room_obj.exists():
+        data['error'] = "*The number of Rooms available are not defined by the Room Manager yet!"
+        return JsonResponse(data)
+
+    room_obj = room_obj[0]
+    if room_obj.start_date <= booking_date:
+        available_rooms = room_obj.rooms
+    else:
+        end_date = room_obj.start_date - timedelta(days=1)
+        room_objs = Rooms.objects.filter(end_date=end_date)
+        for room_obj in room_objs:
+            if room_obj.start_date <= room_obj.end_time:  # Room object is valid
+                available_rooms = room_obj.rooms
+                break
+    data['rooms'] = available_rooms
+    return JsonResponse(data)
+
+def bookingRoomChangedAJAX(request):
+    booking_room = request.GET.get('booking_room', None)
+    booking_date_str = request.GET.get('booking_date', None)
+    booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
+
+    data = {}
+    time_now = datetime.now().time()
+
+    data['error'] = ''
+
+    if booking_room == '':
+        data['time_slots'] = []
+        return JsonResponse(data)
+
+    available_time_slots = []
+    time_slot_dict = {}
+    time_slots = TimeSlot.objects.all()
+    for time_slot in time_slots:
+        if time_slot.start_time >= time_now and time_slot.start_date <= booking_date and (time_slot.end_date is None or time_slot.end_date >= booking_date):
+            if not Booking.objects.filter(cancelled=False, date=booking_date, room=booking_room, time_slot=time_slot).exists(): 
+                time_slot_dict['id'] = time_slot.id
+                time_slot_dict['slot'] = str(time_slot.start_time) + ' - ' + str(time_slot.end_time)
+                available_time_slots.append(time_slot_dict.copy())
+
+    if len(available_time_slots) == 0:
+        data['error'] = "*No Time Slots are free for the chosen Date and Room."
+    else:
+        data['time_slots'] = available_time_slots
+
+    return JsonResponse(data)
+
 
 def setprofile(request):
     if request.user.is_authenticated:

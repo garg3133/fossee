@@ -63,21 +63,29 @@
     <div class="tab-content">
         {% if user.profile.room_manager is False %}
         <div class="tab-pane container active" id="book-room">
-            <div class="row justify-content-center">
-                <div class="col-4">
-                    <form method="POST">
-                        {% csrf_token %}
-                        <h3 class="mt-5 mb-3 text-center">Book Room</h3>
-                        {% if rooms_context2 %}
-                        <p class="text-center">Current Rooms: {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
-                        {% else %}
-                        <p class="text-center">Current Rooms: {{ rooms_context1 }}</p>
-                        {% endif %}
-                        <input name="rooms" type="number" class="form-control" required>
-                        <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="rooms">Update</button>
-                    </form>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row justify-content-center mt-4">
+                    <div class="col-md-3 mb-3">
+                        <label for="booking-date">Date</label>
+                        <input name="booked-on" data-date-format="yyyy-mm-dd" id="booking-date" class="form-control" required>
+                    </div>
+                    <div class="col-md-3 mb-3" id="available-rooms-div">
+                        <label for="available-rooms">Available Room</label>
+                        <select name="booking-room" class="custom-select d-block w-100" id="available-rooms" required></select>
+                    </div>
+                    <div class="col-md-3 mb-3" id="available-time-slots-div">
+                        <label for="available-time-slots">Available Time Slot</label>
+                        <select name="booking-time-slot" class="custom-select d-block w-100" id="available-time-slots" required></select>
+                    </div>
                 </div>
-            </div>
+                <p class="text-danger text-center" id="booking-error"></p>
+                <div class="row justify-content-center mb-4">
+                    <div class="col-md-4">
+                        <button id="book-button" name="submit" value="book-room" class="btn btn-primary btn-lg btn-block" type="submit">Book</button>
+                    </div>
+                </div>
+            </form>
         </div>
         <div class="tab-pane container fade" id="previous-bookings">
             You can view your previous bookings here..
@@ -114,6 +122,9 @@
                         <p class="text-center">Current Allowance: {{ allowance }}</p>
                         <input name="allowance" type="number" class="form-control" required>
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="allowance">Update</button>
+                        {% if allowance_error %}
+                        <p class="text-center text-danger">*{{allowance_error}}</p>
+                        {% endif %}
                     </form>
                 </div>
             </div>
@@ -131,6 +142,9 @@
                         {% endif %}
                         <input name="rooms" type="number" class="form-control" required>
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="rooms">Update</button>
+                        {% if rooms_error %}
+                        <p class="text-center text-danger">*{{rooms_error}}</p>
+                        {% endif %}
                     </form>
                 </div>
             </div>
@@ -172,7 +186,9 @@
                         <label for="timepicker2">To</label>
                         <input type="text" id="timepicker2" class="form-control" name="end_time" />
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="time_slot">Add</button>
+                        {% if time_slot_error %}
                         <p class="text-center text-danger">*{{time_slot_error}}</p>
+                        {% endif %}
                     </form>
                 </div>
             </div>
@@ -206,12 +222,6 @@
                     <button type="submit" class="btn btn-danger" id="del-ts" name="submit" value="del_ts">Delete</button>
                 </form>
             </div>
-				
-            <!-- Modal footer -->
-            <!-- <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
-            </div> -->
-        
         </div>
     </div>
 </div>
@@ -239,6 +249,101 @@
     if("{{del_time_slots_list}}"){
         $('#del-ts-modal').modal('show')
     }
+</script>
+
+<!-- AJAX for Room Booking Date Change -->
+
+<script>
+    let available_rooms_div = document.getElementById('available-rooms-div');
+    let available_time_slots_div = document.getElementById('available-time-slots-div');
+    let booking_error = document.getElementById('booking-error');
+    let book_button = document.getElementById('book-button');
+    
+    $("#booking-date").change(function () {
+        var booking_date = $(this).val();
+
+        $.ajax({
+            url: '{% url "booking_date_changed" %}',
+            data: {
+                'booking_date': booking_date
+            },
+            dataType: 'json',
+            success: function (data) {
+
+                if(data.error == ''){
+                    if(available_rooms_div.classList.contains('d-none')) available_rooms_div.classList.remove('d-none');
+                    if(available_time_slots_div.classList.contains('d-none')) available_time_slots_div.classList.remove('d-none');
+                    booking_error.innerHTML = ""
+                    if(book_button.hasAttribute("disabled")) book_button.removeAttribute("disabled");
+                    
+                    let options = '<option value="" > Select Room </option>';;
+                    for(let i=1; i<=data.rooms; i++){
+                        options += '<option value="' + i + '">' + i + '</option>';
+                    }
+                    $("#available-rooms").html(options);
+                }
+                else{
+                    if(!available_rooms_div.classList.contains('d-none')) available_rooms_div.classList.add('d-none');
+                    if(!available_time_slots_div.classList.contains('d-none')) available_time_slots_div.classList.add('d-none');
+                    if(!book_button.hasAttribute("disabled")) book_button.setAttribute("disabled", "disabled")
+                    booking_error.innerHTML = data.error
+                }
+            }
+        });
+    });
+</script>
+
+<!-- AJAX for Room Booking Room Change -->
+
+<script>
+    $("#available-rooms").change(function () {
+        var booking_room = $(this).val();
+        var booking_date = $("#booking-date").val();
+
+        $.ajax({
+            url: '{% url "booking_room_changed" %}',
+            data: {
+                'booking_date': booking_date,
+                'booking_room': booking_room
+            },
+            dataType: 'json',
+            success: function (data) {
+
+                if(data.error == ''){
+                    if(available_time_slots_div.classList.contains('d-none')) available_time_slots_div.classList.remove('d-none');
+                    booking_error.innerHTML = ""
+                    if(book_button.hasAttribute("disabled")) book_button.removeAttribute("disabled");
+                    console.log(data)
+                    let options = '';
+                    for(let i=0; i<data.time_slots.length; i++){
+                        options += '<option value="' + data.time_slots[i].id + '">' + data.time_slots[i].slot + '</option>';
+                    }
+                    $("#available-time-slots").html(options);
+
+                }
+                else{
+                    if(!available_time_slots_div.classList.contains('d-none')) available_time_slots_div.classList.add('d-none');
+                    if(!book_button.hasAttribute("disabled")) book_button.setAttribute("disabled", "disabled")
+                    booking_error.innerHTML = data.error
+                }
+            }
+        });
+    });
+</script>
+
+<!-- Script for Room Booking Date Picker -->
+
+<script type="text/javascript">
+    $('#booking-date').datepicker({
+        weekStart: 1,
+        autoclose: true,
+        todayHighlight: true,
+    });
+    // if(document.getElementById("extra-info-1").value.length>0)
+    // 	$('#booking-date').datepicker("setDate", "{{ selected_date|date:'Y-m-d' }}");
+    // else
+    $('#booking-date').datepicker("setDate", new Date());
+    
 </script>
 
 {% endblock %}
