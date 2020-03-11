@@ -103,16 +103,20 @@ def dashboard(request):
     time_slots = TimeSlot.objects.all().order_by('start_time')
     for time_slot in time_slots:
         if time_slot.end_date is None:
+            time_slot_dict['id'] = time_slot.id
             time_slot_dict['start_time'] = str(time_slot.start_time)
             time_slot_dict['end_time'] = str(time_slot.end_time)
+            time_slot_dict['delete'] = 'yes'
             if time_slot.start_date > today_date:
                 time_slot_dict['remark'] = '(From ' + str(time_slot.start_date) + ')'
             else:
                 time_slot_dict['remark'] = ''
             time_slots_list.append(time_slot_dict.copy())
-        elif time_slot.end_date >= today_date:
+        elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:
+            time_slot_dict['id'] = time_slot.id
             time_slot_dict['start_time'] = str(time_slot.start_time)
             time_slot_dict['end_time'] = str(time_slot.end_time)
+            time_slot_dict['delete'] = 'no'
             time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
             time_slots_list.append(time_slot_dict.copy())
 
@@ -125,7 +129,7 @@ def dashboard(request):
 
     # To check overlaping of time slots
     def time_overlaps(start_time1, end_time1, start_time2, end_time2):
-        if (start_time1 > start_time2 and start_time1 <end_time2) or (end_time1 > start_time2 and end_time1 <end_time2):
+        if (start_time1 > start_time2 and start_time1 <end_time2) or (end_time1 > start_time2 and end_time1 <end_time2) or (start_time1 < start_time2 and end_time1 > end_time2):
             return True
         else:
             return False
@@ -180,21 +184,29 @@ def dashboard(request):
             return HttpResponseRedirect('/dashboard')
 
         elif request.POST.get('submit') == 'time_slot':
-            new_start_time = request.POST['start_time']
-            new_end_time = request.POST['end_time']
+            new_start_time_str = request.POST['start_time']
+            new_end_time_str = request.POST['end_time']
 
-            new_start_time = datetime.strptime(new_start_time, '%H:%M').time()
-            new_end_time = datetime.strptime(new_end_time, '%H:%M').time()
+            new_start_time = datetime.strptime(new_start_time_str, '%H:%M').time()
+            new_end_time = datetime.strptime(new_end_time_str, '%H:%M').time()
 
-            last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
-            if last_booking.exists():
-                last_booking = last_booking[0]
-                last_booking_date = last_booking.date
-                new_time_slot_start_date = last_booking_date + timedelta(days=1)
-            else:
-                new_time_slot_start_date = today_date + timedelta(days=1)
+            if new_end_time <= new_start_time:
+                context1 = {
+                    'time_slot_error' : "Please select a valid time slot.",
+                }
+                context.update(context1)
+                return render(request, 'home/dashboard.html', context)
 
-            overlapped_time_slots_list = []
+            # last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
+            # if last_booking.exists():
+            #     last_booking = last_booking[0]
+            #     last_booking_date = last_booking.date
+            #     new_time_slot_start_date = last_booking_date + timedelta(days=1)
+            # else:
+            #     new_time_slot_start_date = today_date + timedelta(days=1)
+
+            del_time_slots_list = []  # Time Slots to be deleted
+            overlapped_time_slots_list = []  # Other overlapped time slots (need not to be deleted)
             overlapped_time_slot_dict = {}
             time_slots = TimeSlot.objects.all().order_by('start_time')
             for time_slot in time_slots:
@@ -206,27 +218,95 @@ def dashboard(request):
                             overlapped_time_slot_dict['remark'] = '(From ' + str(time_slot.start_date) + ')'
                         else:
                             overlapped_time_slot_dict['remark'] = ''
-                        overlapped_time_slots_list.append(overlapped_time_slot_dict)
-                elif time_slot.end_date >= new_time_slot_start_date:
+                        del_time_slots_list.append(overlapped_time_slot_dict.copy())
+                elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:
                     if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
-                        overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
-                        overlapped_time_slot_dict['end_time'] = str(time_slot.end_time)
-                        overlapped_time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
-                        overlapped_time_slots_list.append(overlapped_time_slot_dict)
+                        # overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
+                        # overlapped_time_slot_dict['end_time'] = str(time_slot.end_time)
+                        # overlapped_time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
+                        overlapped_time_slots_list.append(time_slot)
 
-            if len(overlapped_time_slots_list) == 0:
-                new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_time_slot_start_date)
-                new_time_slot.save()
-                return HttpResponseRedirect('/')
-            else:
+            if len(del_time_slots_list) > 0:
+                # Ask for deleting those time slots
                 context1 = {
-                    'overlapped_time_slots_list' : overlapped_time_slots_list,
+                    'del_time_slots_list' : del_time_slots_list,
+                    'entered_start_time' : new_start_time_str,
+                    'entered_end_time' : new_end_time_str,
                 }
                 context.update(context1)
                 return render(request, 'home/dashboard.html', context)
+            elif len(overlapped_time_slots_list) > 0:
+                # Find max end date of overlaps
+                max_end_date = today_date
+                for time_slot in overlapped_time_slots_list:
+                    if time_slot.end_date > max_end_date:
+                        max_end_date = time_slot.end_date
 
+                new_start_date = max_end_date + timedelta(days=1)
+
+                new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_start_date)
+                new_time_slot.save()
+                return HttpResponseRedirect('/')
+
+            else:
+                new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=today_date)
+                new_time_slot.save()
+                return HttpResponseRedirect('/')
+
+        elif request.POST.get('submit') == 'del_ts':
+            new_start_time_str = request.POST['start_time']
+            new_end_time_str = request.POST['end_time']
+
+            # Time from form converted to datetime.time object
+            new_start_time = datetime.strptime(new_start_time_str, '%H:%M').time()
+            new_end_time = datetime.strptime(new_end_time_str, '%H:%M').time()
+
+            max_end_date = today_date
+            del_time_slots_list = []  # Time Slots to be deleted
+            time_slots = TimeSlot.objects.all().order_by('start_time')
+            for time_slot in time_slots:
+                if time_slot.end_date is None:   # Time Slots to be deleted if overlaping
+                    if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
+                        del_time_slots_list.append(time_slot)
+
+                        booking = Booking.objects.filter(cancelled=False, time_slot=time_slot).order_by('-date')
+                        if booking.exists() and (booking[0].date > max_end_date):
+                            max_end_date = booking[0].date
+
+                elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:   # Other possible overlapping Time Slots (already deleted)
+                    if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
+                        # overlapped_time_slots_list.append(time_slot)
+                        if time_slot.end_date > max_end_date:
+                            max_end_date = time_slot.end_date
+
+            # Deleting the overlapped time slots from the day next to max_end_date
+            if len(del_time_slots_list) > 0:
+                for time_slot in del_time_slots_list:
+                    time_slot.end_date = max_end_date
+                    time_slot.save()
+
+            # Creating the new time slot
+            new_start_date = max_end_date + timedelta(days=1)
+
+            new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_start_date)
+            new_time_slot.save()
+            return HttpResponseRedirect('/')
 
     return render(request, 'home/dashboard.html', context)
+
+def deleteTimeSlot(request, uid):
+    time_slot = TimeSlot.objects.get(pk=uid)
+
+    if time_slot.end_date is None:
+        end_date = date.today()
+        booking = Booking.objects.filter(cancelled=False, time_slot=time_slot).order_by('-date')
+        if booking.exists() and (booking[0].date > end_date):
+            end_date = booking[0].date
+        
+        time_slot.end_date = end_date
+        time_slot.save()
+
+    return redirect('dashboard')
 
 def setprofile(request):
     if request.user.is_authenticated:

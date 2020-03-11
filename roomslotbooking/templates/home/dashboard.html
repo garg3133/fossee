@@ -63,7 +63,21 @@
     <div class="tab-content">
         {% if user.profile.room_manager is False %}
         <div class="tab-pane container active" id="book-room">
-            You can book the rooms here..
+            <div class="row justify-content-center">
+                <div class="col-4">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <h3 class="mt-5 mb-3 text-center">Book Room</h3>
+                        {% if rooms_context2 %}
+                        <p class="text-center">Current Rooms: {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
+                        {% else %}
+                        <p class="text-center">Current Rooms: {{ rooms_context1 }}</p>
+                        {% endif %}
+                        <input name="rooms" type="number" class="form-control" required>
+                        <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="rooms">Update</button>
+                    </form>
+                </div>
+            </div>
         </div>
         <div class="tab-pane container fade" id="previous-bookings">
             You can view your previous bookings here..
@@ -81,9 +95,13 @@
                     {% endif %}
 
                     <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
-                    {% for time_slot in time_slots_list %}
-                    <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
-                    {% endfor %}
+                    {% if time_slots_list|length %}
+                        {% for time_slot in time_slots_list %}
+                        <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
+                        {% endfor %}
+                    {% else %}
+                    <p class="text-center m-0">Nothing to show here!</p>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -119,19 +137,42 @@
         </div>
         <div class="tab-pane container fade" id="time-slots">
             <div class="row justify-content-center">
+                <div class="col-8">
+                    <h3 class="mt-3 mb-3 text-center">Add Time Slots</h3>
+                    <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
+                    {% if time_slots_list|length %}
+                    <table class="table table-bordered">
+                        <tbody>
+                            {% for time_slot in time_slots_list %}
+                            <tr>
+                                <td class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</td>
+                                <td class="text-left m-0">
+                                    {% if time_slot.delete == 'yes' %}
+                                    <a href="{% url 'delete_ts' uid=time_slot.id %}">Delete</a>
+                                    {% else %}
+                                    <a class="text-secondary" style="cursor: pointer;">Delete</a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            <!-- <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p> -->
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p class="text-center m-0">Nothing to show here!</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="row justify-content-center">
                 <div class="col-4">
                     <form method="POST">
                         {% csrf_token %}
-                        <h3 class="mt-5 mb-3 text-center">Add Time Slots</h3>
-                        <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
-                        {% for time_slot in time_slots_list %}
-                        <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
-                        {% endfor %}
                         <label for="timepicker1" class="mt-2">From</label>
                         <input type="text" id="timepicker1" class="form-control" name="start_time" />
                         <label for="timepicker2">To</label>
                         <input type="text" id="timepicker2" class="form-control" name="end_time" />
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="time_slot">Add</button>
+                        <p class="text-center text-danger">*{{time_slot_error}}</p>
                     </form>
                 </div>
             </div>
@@ -141,6 +182,37 @@
             Bookings Summary..
         </div>
         {% endif %}
+    </div>
+</div>
+
+<!-- Delete Time Slots warning Modal -->
+<div class="modal" id="del-ts-modal">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+    
+            <div class="modal-header">
+                <h4 class="modal-title">Delete following Time Slots?</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                The following time slots overlaps with the entered new time slot. Do you want to delete these slots?
+                {% for time_slot in del_time_slots_list %}
+                <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
+                {% endfor %}
+                <form method="POST" class="my-2 text-center">
+                    {% csrf_token %}
+                    <input type="hidden" name="start_time" value="{{ entered_start_time }}" />
+                    <input type="hidden" name="end_time" value="{{ entered_end_time }}" />
+                    <button type="submit" class="btn btn-danger" id="del-ts" name="submit" value="del_ts">Delete</button>
+                </form>
+            </div>
+				
+            <!-- Modal footer -->
+            <!-- <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div> -->
+        
+        </div>
     </div>
 </div>
 
@@ -155,4 +227,18 @@
         uiLibrary: 'bootstrap4'
     });
 </script>
+
+<script>
+    if("{{time_slot_error}}"){
+        document.getElementById("home").classList.remove('active')
+        document.getElementById("home").classList.add('fade')
+        document.getElementById("time-slots").classList.remove('fade')
+        document.getElementById("time-slots").classList.add('active')
+    }
+
+    if("{{del_time_slots_list}}"){
+        $('#del-ts-modal').modal('show')
+    }
+</script>
+
 {% endblock %}
