@@ -323,6 +323,30 @@ def dashboard(request):
             new_time_slot.save()
             return HttpResponseRedirect('/')
 
+        elif request.POST.get('submit') == 'update-profile':
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            email = request.POST['email']
+            gender  = request.POST['gender']
+            contact_no = request.POST['contact_no']
+            address = request.POST['address']
+
+            # Updating User Model
+            user_obj = request.user
+            user_obj.email = email
+            user_obj.first_name = first_name
+            user_obj.last_name = last_name
+            user_obj.save()
+
+            # Updating Profile Model
+            profile_obj = Profile.objects.get(user=request.user)
+            profile_obj.gender = gender
+            profile_obj.contact_no = contact_no
+            profile_obj.address = address
+            profile_obj.save()
+
+            return HttpResponseRedirect('/')
+
     return render(request, 'home/dashboard.html', context)
 
 def setprofile(request):
@@ -345,7 +369,7 @@ def setprofile(request):
             user_obj.save()
 
             # Updating Profile Model
-            profile_obj = Profile( user=user_obj, gender=gender, contact_no=contact_no, address=address)
+            profile_obj = Profile(user=user_obj, gender=gender, contact_no=contact_no, address=address)
             profile_obj.save()
 
             return redirect('dashboard')

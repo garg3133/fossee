@@ -54,10 +54,10 @@
         <li class="nav-item">
             <a class="nav-link" data-toggle="pill" href="#summary">Bookings Summary</a>
         </li>
-        <!-- <li class="nav-item">
-            <a class="nav-link" data-toggle="pill" href="#previous-bookings">My Previous Bookings</a>
-        </li> -->
         {% endif %}
+        <li class="nav-item">
+            <a class="nav-link" data-toggle="pill" href="#update-profile">Update Profile</a>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -65,7 +65,9 @@
         <div class="tab-pane container active" id="book-room">
             <form method="POST">
                 {% csrf_token %}
+                {% if time_slots_list|length %}
                 <p class="text-center mt-3">Note: You can book Rooms for only {{ allowance }} days in advanced.</p>
+                {% endif %}
                 <div class="row justify-content-center mt-4">
                     <div class="col-md-3 mb-3">
                         <label for="booking-date">Date</label>
@@ -95,59 +97,59 @@
                     <hr>
                     <p>
                         {% if user_bookings.count %}
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th>Date</th>
-                                        <th>Room No.</th>
-                                        <th>Time Slot</th>
-                                        <th>Status</th>
-                                        <th>Room Manager</th>
-                                        <th></th>
-                                    </tr class="text-center">
-                                </thead>
-                                <tbody>
-                                    {% for booking in user_bookings %}
-                                    <tr class="text-center">
-                                        <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
-                                        <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
-                                        <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>Date</th>
+                                    <th>Room No.</th>
+                                    <th>Time Slot</th>
+                                    <th>Status</th>
+                                    <th>Room Manager</th>
+                                    <th></th>
+                                </tr class="text-center">
+                            </thead>
+                            <tbody>
+                                {% for booking in user_bookings %}
+                                <tr class="text-center">
+                                    <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
+                                    <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
+                                    <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
 
-                                        {% if booking.cancelled is True %}
-                                        <td class="text-monospace font-weight-lighter">Cancelled</td>
-                                        {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
-                                        <td class="text-monospace font-weight-lighter">Upcoming</td>
-                                        {% elif booking.date == today_date and time_now > booking.time_slot.start_time and booking.time_slot.end_time > time_now %}
-                                        <td class="text-monospace font-weight-lighter">Occupied</td>
-                                        {% else %}
-                                        <td class="text-monospace font-weight-lighter">Completed</td>
-                                        {% endif %}
+                                    {% if booking.cancelled is True %}
+                                    <td class="text-monospace font-weight-lighter">Cancelled</td>
+                                    {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                    <td class="text-monospace font-weight-lighter">Upcoming</td>
+                                    {% elif booking.date == today_date and time_now > booking.time_slot.start_time and booking.time_slot.end_time > time_now %}
+                                    <td class="text-monospace font-weight-lighter">Occupied</td>
+                                    {% else %}
+                                    <td class="text-monospace font-weight-lighter">Completed</td>
+                                    {% endif %}
 
+                                    <td class="text-monospace font-weight-lighter">
+                                        <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
+                                    </td>
+
+                                    {% if booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                        {% if booking.cancelled is False %}
                                         <td class="text-monospace font-weight-lighter">
-                                            <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
+                                            <a href="{% url 'delete_booking' uid=booking.id %}">Cancel</a>
                                         </td>
-
-                                        {% if booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
-                                            {% if booking.cancelled is False %}
-                                            <td class="text-monospace font-weight-lighter">
-                                                <a href="{% url 'delete_booking' uid=booking.id %}">Cancel</a>
-                                            </td>
-                                            {% else %}
-                                            <td class="text-monospace font-weight-lighter">
-                                                <a class="text-secondary" style="cursor: pointer;">Cancel</a>
-                                            </td>
-                                            {% endif %}
                                         {% else %}
                                         <td class="text-monospace font-weight-lighter">
                                             <a class="text-secondary" style="cursor: pointer;">Cancel</a>
                                         </td>
                                         {% endif %}
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    {% else %}
+                                    <td class="text-monospace font-weight-lighter">
+                                        <a class="text-secondary" style="cursor: pointer;">Cancel</a>
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         {% else %}
-                            <pre>No bookings made yet!</pre>
+                        <pre>No bookings made yet!</pre>
                         {% endif %}
                     </p>
                 </div>
@@ -155,23 +157,43 @@
         </div>
         {% else %}
         <div class="tab-pane container active" id="home">
-            <div class="row justify-content-center mt-5">
-                <div class="col-4">
-                    <p class="text-center"><span class="font-weight-bold">Current Allowance:</span> {{ allowance }}</p>
-                    
-                    {% if rooms_context2 %}
-                    <p class="text-center"><span class="font-weight-bold">Current Rooms:</span> {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
-                    {% else %}
-                    <p class="text-center"><span class="font-weight-bold">Current Rooms:</span> {{ rooms_context1 }}</p>
-                    {% endif %}
-
-                    <p class="text-center font-weight-bold mb-1">Current Time Slots:</p>
+            <div class="row justify-content-center mt-4">
+                <div class="col-12 col-md-8">
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th class="text-center">Pre-Booking Allowance</th>
+                                <th class="text-center" >Rooms</th>
+                            </tr>
+                            <tr>
+                                <td class="text-center">{{ allowance }}</td>
+                                {% if rooms_context2 %}
+                                <td class="text-center">{{ rooms_context1 }}<br>{{ rooms_context2 }} </td>
+                                {% else %}
+                                <td class="text-center">{{ rooms_context1 }}</td>
+                                {% endif %}
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="row justify-content-center">
+                <div class="col-6">
                     {% if time_slots_list|length %}
-                        {% for time_slot in time_slots_list %}
-                        <p class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</p>
-                        {% endfor %}
+                    <table class="table table-bordered">
+                        <tbody>
+                            <tr>
+                                <th class="text-center">Time Slots</th>
+                            </tr>
+                            {% for time_slot in time_slots_list %}
+                            <tr>
+                                <td class="text-center m-0">{{ time_slot.start_time }} - {{ time_slot.end_time }} {{ time_slot.remark }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                     {% else %}
-                    <p class="text-center m-0">Nothing to show here!</p>
+                    <p class="text-center">Time Slots are not updated yet!</p>
                     {% endif %}
                 </div>
             </div>
@@ -181,9 +203,20 @@
                 <div class="col-4">
                     <form method="POST">
                         {% csrf_token %}
-                        <h3 class="mt-5 mb-3 text-center">Update Pre-Booking Allowance</h3>
-                        <p class="text-center">Current Allowance: {{ allowance }}</p>
-                        <input name="allowance" type="number" class="form-control" required>
+                        <h3 class="mt-4 mb-3 text-center">Update Pre-Booking Allowance</h3>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th class="text-center">Current Allowance</th>
+                                </tr>
+                                <tr>
+                                    <td class="text-center">{{ allowance }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- <p class="text-center">Current Allowance: {{ allowance }}</p> -->
+                        <label for="new-allowance-input">New Pre-Booking Allowance</label>
+                        <input name="allowance" type="number" class="form-control" id="new-allowance-input" required>
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="allowance">Update</button>
                         {% if allowance_error %}
                         <p class="text-center text-danger">*{{allowance_error}}</p>
@@ -197,13 +230,32 @@
                 <div class="col-4">
                     <form method="POST">
                         {% csrf_token %}
-                        <h3 class="mt-5 mb-3 text-center">Update Rooms</h3>
+                        <h3 class="mt-4 mb-3 text-center">Update Rooms</h3>
+                        <table class="table table-bordered">
+                            <tbody>
+                                <tr>
+                                    <th class="text-center">Current Rooms</th>
+                                </tr>
+                                <tr>
+                                    {% if rooms_context2 %}
+                                    <td class="text-center">{{ rooms_context1 }}<br>{{ rooms_context2 }} </td>
+                                    {% else %}
+                                    <td class="text-center">{{ rooms_context1 }}</td>
+                                    {% endif %}
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        {% comment %}
                         {% if rooms_context2 %}
                         <p class="text-center">Current Rooms: {{ rooms_context1 }}<br>{{ rooms_context2 }} </p>
                         {% else %}
                         <p class="text-center">Current Rooms: {{ rooms_context1 }}</p>
                         {% endif %}
-                        <input name="rooms" type="number" class="form-control" required>
+                        {% endcomment %}
+
+                        <label for="new-rooms-input">New Rooms</label>
+                        <input name="rooms" type="number" class="form-control" id="new-rooms-input" required>
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="rooms">Update</button>
                         {% if rooms_error %}
                         <p class="text-center text-danger">*{{rooms_error}}</p>
@@ -260,55 +312,106 @@
         <div class="tab-pane container fade" id="summary">
             <div class="row justify-content-center my-4 mx-0">
                 <div class="col-12 col-md-10 border rounded">
-                    <h4 class="text-center mt-3">Previous Bookings</h4>
+                    <h4 class="text-center mt-3">Bookings Summary</h4>
                     <hr>
                     <p>
                         {% if all_bookings.count %}
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr class="text-center">
-                                        <th>Date</th>
-                                        <th>Room No.</th>
-                                        <th>Time Slot</th>
-                                        <th>Customer</th>
-                                        <th>Status</th>
-                                        <th>Room Manager</th>
-                                    </tr class="text-center">
-                                </thead>
-                                <tbody>
-                                    {% for booking in all_bookings %}
-                                    <tr class="text-center">
-                                        <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
-                                        <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
-                                        <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
+                        <table class="table table-hover">
+                            <thead>
+                                <tr class="text-center">
+                                    <th>Date</th>
+                                    <th>Room No.</th>
+                                    <th>Time Slot</th>
+                                    <th>Customer</th>
+                                    <th>Status</th>
+                                    <th>Room Manager</th>
+                                </tr class="text-center">
+                            </thead>
+                            <tbody>
+                                {% for booking in all_bookings %}
+                                <tr class="text-center">
+                                    <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
+                                    <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
+                                    <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
 
-                                        <td class="text-monospace font-weight-lighter">
-                                            <a class="text-primary" style="cursor: pointer;" onclick="show_customer_details('{{ booking.customer.id }}')">{{ booking.customer }}</a>
-                                        </td>
+                                    <td class="text-monospace font-weight-lighter">
+                                        <a class="text-primary" style="cursor: pointer;" onclick="show_customer_details('{{ booking.customer.id }}')">{{ booking.customer }}</a>
+                                    </td>
 
-                                        {% if booking.cancelled is True %}
-                                        <td class="text-monospace font-weight-lighter">Cancelled</td>
-                                        {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
-                                        <td class="text-monospace font-weight-lighter">Upcoming</td>
-                                        {% else %}
-                                        <td class="text-monospace font-weight-lighter">Completed</td>
-                                        {% endif %}
+                                    {% if booking.cancelled is True %}
+                                    <td class="text-monospace font-weight-lighter">Cancelled</td>
+                                    {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                    <td class="text-monospace font-weight-lighter">Upcoming</td>
+                                    {% else %}
+                                    <td class="text-monospace font-weight-lighter">Completed</td>
+                                    {% endif %}
 
-                                        <td class="text-monospace font-weight-lighter">
-                                            <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
+                                    <td class="text-monospace font-weight-lighter">
+                                        <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                         {% else %}
-                            <pre>No bookings made yet!</pre>
+                        <pre>No bookings made yet!</pre>
                         {% endif %}
                     </p>
                 </div>
             </div>
         </div>
         {% endif %}
+        <div class="tab-pane container fade" id="update-profile">
+            <div class="row justify-content-center mt-4">
+                <div class="col-12 col-md-8">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="firstName">First name</label>
+                                <input name="first_name" type="text" class="form-control" id="firstName" placeholder="" value="{{ user.first_name }}" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="lastName">Last name</label>
+                                <input name="last_name" type="text" class="form-control" id="lastName" placeholder="" value="{{ user.last_name }}" required>
+                            </div>
+                        </div>
+        
+                        <div class="mb-3">
+                            <label for="email">Email </label>
+                            <input name="email" type="email" class="form-control" id="email" placeholder="" value="{{ user.email }}" required>
+                        </div>
+        
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <label for="gender">Gender</label>
+                                <select name="gender" class="custom-select d-block w-100" id="gender" required>
+                                    <option value="M" {% if user.profile.gender == "M" %} selected {% endif %}>Male</option>
+                                    <option value="F" {% if user.profile.gender == "F" %} selected {% endif %}>Female</option>
+                                    <option value="O" {% if user.profile.gender == "O" %} selected {% endif %}>Other</option>
+                                </select>
+                            </div>
+                            <div class="col-md-8 mb-3">
+                                <label for="contactNo">Contact No.</label>
+                                <input name="contact_no" type="number" class="form-control" id="contactNo" placeholder="" value="{{ user.profile.contact_no }}" required>
+                            </div>
+                        </div>
+        
+                        <div class="mb-3">
+                            <label for="address">Address</label>
+                            <textarea name="address" id="address" class="form-control" rows="4" placeholder="" required>{{ user.profile.address }}</textarea>
+                        </div>
+        
+                        <hr class="mb-4">
+                        <div class="row justify-content-center mb-4">
+                            <div class="col-md-6">
+                                <button type="submit" class="btn btn-primary btn-lg btn-block" name="submit" value="update-profile">Update</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
