@@ -65,6 +65,7 @@
         <div class="tab-pane container active" id="book-room">
             <form method="POST">
                 {% csrf_token %}
+                <p class="text-center mt-3">Note: You can book Rooms for only {{ allowance }} days in advanced.</p>
                 <div class="row justify-content-center mt-4">
                     <div class="col-md-3 mb-3">
                         <label for="booking-date">Date</label>
@@ -88,7 +89,69 @@
             </form>
         </div>
         <div class="tab-pane container fade" id="previous-bookings">
-            You can view your previous bookings here..
+            <div class="row justify-content-center my-4 mx-0">
+                <div class="col-12 col-md-10 border rounded">
+                    <h4 class="text-center mt-3">Previous Bookings</h4>
+                    <hr>
+                    <p>
+                        {% if user_bookings.count %}
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th>Date</th>
+                                        <th>Room No.</th>
+                                        <th>Time Slot</th>
+                                        <th>Status</th>
+                                        <th>Room Manager</th>
+                                        <th></th>
+                                    </tr class="text-center">
+                                </thead>
+                                <tbody>
+                                    {% for booking in user_bookings %}
+                                    <tr class="text-center">
+                                        <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
+                                        <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
+                                        <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
+
+                                        {% if booking.cancelled is True %}
+                                        <td class="text-monospace font-weight-lighter">Cancelled</td>
+                                        {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                        <td class="text-monospace font-weight-lighter">Upcoming</td>
+                                        {% elif booking.date == today_date and time_now > booking.time_slot.start_time and booking.time_slot.end_time > time_now %}
+                                        <td class="text-monospace font-weight-lighter">Occupied</td>
+                                        {% else %}
+                                        <td class="text-monospace font-weight-lighter">Completed</td>
+                                        {% endif %}
+
+                                        <td class="text-monospace font-weight-lighter">
+                                            <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
+                                        </td>
+
+                                        {% if booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                            {% if booking.cancelled is False %}
+                                            <td class="text-monospace font-weight-lighter">
+                                                <a href="{% url 'delete_booking' uid=booking.id %}">Cancel</a>
+                                            </td>
+                                            {% else %}
+                                            <td class="text-monospace font-weight-lighter">
+                                                <a class="text-secondary" style="cursor: pointer;">Cancel</a>
+                                            </td>
+                                            {% endif %}
+                                        {% else %}
+                                        <td class="text-monospace font-weight-lighter">
+                                            <a class="text-secondary" style="cursor: pointer;">Cancel</a>
+                                        </td>
+                                        {% endif %}
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <pre>No bookings made yet!</pre>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
         {% else %}
         <div class="tab-pane container active" id="home">
@@ -195,7 +258,55 @@
             
         </div>
         <div class="tab-pane container fade" id="summary">
-            Bookings Summary..
+            <div class="row justify-content-center my-4 mx-0">
+                <div class="col-12 col-md-10 border rounded">
+                    <h4 class="text-center mt-3">Previous Bookings</h4>
+                    <hr>
+                    <p>
+                        {% if all_bookings.count %}
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr class="text-center">
+                                        <th>Date</th>
+                                        <th>Room No.</th>
+                                        <th>Time Slot</th>
+                                        <th>Customer</th>
+                                        <th>Status</th>
+                                        <th>Room Manager</th>
+                                    </tr class="text-center">
+                                </thead>
+                                <tbody>
+                                    {% for booking in all_bookings %}
+                                    <tr class="text-center">
+                                        <td class="text-monospace font-weight-lighter">{{ booking.date }}</td>
+                                        <td class="text-monospace font-weight-lighter">{{ booking.room }}</td>
+                                        <td class="text-monospace font-weight-lighter">{{ booking.time_slot }}</td>
+
+                                        <td class="text-monospace font-weight-lighter">
+                                            <a class="text-primary" style="cursor: pointer;" onclick="show_customer_details('{{ booking.customer.id }}')">{{ booking.customer }}</a>
+                                        </td>
+
+                                        {% if booking.cancelled is True %}
+                                        <td class="text-monospace font-weight-lighter">Cancelled</td>
+                                        {% elif booking.date > today_date or booking.date == today_date and booking.time_slot.start_time > time_now %}
+                                        <td class="text-monospace font-weight-lighter">Upcoming</td>
+                                        {% else %}
+                                        <td class="text-monospace font-weight-lighter">Completed</td>
+                                        {% endif %}
+
+                                        <td class="text-monospace font-weight-lighter">
+                                            <a class="text-primary" style="cursor: pointer;" onclick="show_manager_details('{{ booking.room_manager.id }}')">{{ booking.room_manager }}</a>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        {% else %}
+                            <pre>No bookings made yet!</pre>
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
         </div>
         {% endif %}
     </div>
@@ -221,6 +332,40 @@
                     <input type="hidden" name="end_time" value="{{ entered_end_time }}" />
                     <button type="submit" class="btn btn-danger" id="del-ts" name="submit" value="del_ts">Delete</button>
                 </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Room Manager Details Modal -->
+<div class="modal" id="rm-details-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Room Manager Details</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="rm-details-modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Customer Details Modal -->
+<div class="modal" id="cus-details-modal">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Customer Details</h4>
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+            </div>
+            <div class="modal-body" id="cus-details-modal-body">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
@@ -313,7 +458,7 @@
                     if(available_time_slots_div.classList.contains('d-none')) available_time_slots_div.classList.remove('d-none');
                     booking_error.innerHTML = ""
                     if(book_button.hasAttribute("disabled")) book_button.removeAttribute("disabled");
-                    console.log(data)
+
                     let options = '';
                     for(let i=0; i<data.time_slots.length; i++){
                         options += '<option value="' + data.time_slots[i].id + '">' + data.time_slots[i].slot + '</option>';
@@ -329,6 +474,46 @@
             }
         });
     });
+</script>
+
+<!-- AJAX for Room Manager Details -->
+
+<script>
+    function show_manager_details(room_manager_id) {
+
+        $.ajax({
+            url: '{% url "room_manager_details" %}',
+            data: {
+                'room_manager_id': room_manager_id
+            },
+            dataType: 'json',
+            success: function (data) {
+                details = '<p class="mb-1"><span class="font-weight-bold">Name: </span>' + data.first_name + ' ' + data.last_name + '</p><p class="mb-1"><span class="font-weight-bold">Email: </span> ' + data.email + '</p><p class="mb-1"><span class="font-weight-bold">Contact No.: </span> ' + data.contact_no + '</p>';
+                $('#rm-details-modal-body').html(details);
+                $('#rm-details-modal').modal('show');
+            }
+        });
+    }
+</script>
+
+<!-- AJAX for Customer Details -->
+
+<script>
+    function show_customer_details(customer_id) {
+
+        $.ajax({
+            url: '{% url "customer_details" %}',
+            data: {
+                'customer_id': customer_id
+            },
+            dataType: 'json',
+            success: function (data) {
+                details = '<p class="mb-1"><span class="font-weight-bold">Name: </span>' + data.first_name + ' ' + data.last_name + '</p><p class="mb-1"><span class="font-weight-bold">Email: </span> ' + data.email + '</p><p class="mb-1"><span class="font-weight-bold">Contact No.: </span> ' + data.contact_no + '</p>';
+                $('#cus-details-modal-body').html(details);
+                $('#cus-details-modal').modal('show');
+            }
+        });
+    }
 </script>
 
 <!-- Script for Room Booking Date Picker -->

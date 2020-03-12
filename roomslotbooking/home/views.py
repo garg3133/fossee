@@ -1,6 +1,9 @@
 from datetime import datetime, date, timedelta
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+# import json
+from django.forms.models import model_to_dict
+from django.core import serializers
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import (
@@ -64,18 +67,22 @@ def dashboard(request):
     if not Profile.objects.filter(user=request.user).exists():
         return redirect('setprofile')
 
-    # Global Variables
+    # For Global Use
     today_date = date.today()
     datetime_now = datetime.now()
 
     # Info to be sent all the time
 
+    # User Bookings
+    user_bookings = Booking.objects.filter(customer=request.user).order_by('-booked_on')
+
+    # All Bookings
+    all_bookings = Booking.objects.all().order_by('-date', 'room', 'time_slot__start_time', 'cancelled')
+
     # Pre-Booking Allowance
     allowance = PreBookingAllowance.objects.filter(end_date=None)
     if allowance.exists():
         allowance = allowance[0]
-        # if allowance.start_date == datetime_now:
-        #     allowance = PreBookingAllowance.objects.filter(end_date)
     else:
         allowance = "Not yet updated!"
 
@@ -85,7 +92,6 @@ def dashboard(request):
     rooms = Rooms.objects.filter(end_date=None)
     if rooms.exists():
         rooms = rooms[0]
-        # rooms_context += str(rooms.rooms)
         if rooms.start_date > today_date:
             rooms_old = Rooms.objects.filter(end_date=rooms.start_date-timedelta(days=1))
             if rooms_old.exists():
@@ -121,10 +127,15 @@ def dashboard(request):
             time_slots_list.append(time_slot_dict.copy())
 
     context = {
+        'user_bookings' : user_bookings,
+        'all_bookings' : all_bookings,
         'allowance' : allowance,
         'rooms_context1' : rooms_context1,
         'rooms_context2' : rooms_context2,
         'time_slots_list' : time_slots_list,
+
+        'today_date' : today_date,
+        'time_now' : datetime_now.time(),
     }
 
     # To check overlaping of time slots
@@ -314,6 +325,35 @@ def dashboard(request):
 
     return render(request, 'home/dashboard.html', context)
 
+def setprofile(request):
+    if request.user.is_authenticated:
+        if Profile.objects.filter(user=request.user).exists():
+            return redirect('dashboard')
+        if request.method == 'POST':
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            email = request.POST['email']
+            gender  = request.POST['gender']
+            contact_no = request.POST['contact_no']
+            address = request.POST['address']
+
+            # Updating User Model
+            user_obj = request.user
+            user_obj.email = email
+            user_obj.first_name = first_name
+            user_obj.last_name = last_name
+            user_obj.save()
+
+            # Updating Profile Model
+            profile_obj = Profile( user=user_obj, gender=gender, contact_no=contact_no, address=address)
+            profile_obj.save()
+
+            return redirect('dashboard')
+
+        return render(request, 'home/setprofile.html')
+
+    return redirect('home')
+
 def deleteTimeSlot(request, uid):
     time_slot = TimeSlot.objects.get(pk=uid)
 
@@ -325,6 +365,13 @@ def deleteTimeSlot(request, uid):
         
         time_slot.end_date = end_date
         time_slot.save()
+
+    return redirect('dashboard')
+
+def deleteBooking(request, uid):
+    booking = Booking.objects.get(pk=uid)
+    booking.cancelled = True
+    booking.save()
 
     return redirect('dashboard')
 
@@ -373,6 +420,7 @@ def bookingRoomChangedAJAX(request):
     booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
 
     data = {}
+    today_date = date.today()
     time_now = datetime.now().time()
 
     data['error'] = ''
@@ -383,13 +431,16 @@ def bookingRoomChangedAJAX(request):
 
     available_time_slots = []
     time_slot_dict = {}
-    time_slots = TimeSlot.objects.all()
+    time_slots = TimeSlot.objects.all().order_by('start_time')
     for time_slot in time_slots:
-        if time_slot.start_time >= time_now and time_slot.start_date <= booking_date and (time_slot.end_date is None or time_slot.end_date >= booking_date):
-            if not Booking.objects.filter(cancelled=False, date=booking_date, room=booking_room, time_slot=time_slot).exists(): 
-                time_slot_dict['id'] = time_slot.id
-                time_slot_dict['slot'] = str(time_slot.start_time) + ' - ' + str(time_slot.end_time)
-                available_time_slots.append(time_slot_dict.copy())
+        # If booking date is later, all time slots are allowed but only remaining slots of day if booking is today
+        if booking_date > today_date or (booking_date == today_date and time_slot.start_time >= time_now):
+            # Time Slot is available on the booking day
+            if time_slot.start_date <= booking_date and (time_slot.end_date is None or time_slot.end_date >= booking_date):
+                if not Booking.objects.filter(cancelled=False, date=booking_date, room=booking_room, time_slot=time_slot).exists(): 
+                    time_slot_dict['id'] = time_slot.id
+                    time_slot_dict['slot'] = str(time_slot.start_time) + ' - ' + str(time_slot.end_time)
+                    available_time_slots.append(time_slot_dict.copy())
 
     if len(available_time_slots) == 0:
         data['error'] = "*No Time Slots are free for the chosen Date and Room."
@@ -398,32 +449,31 @@ def bookingRoomChangedAJAX(request):
 
     return JsonResponse(data)
 
+def roomManagerDetailsAJAX(request):
+    room_manager_id = request.GET.get('room_manager_id', None)
 
-def setprofile(request):
-    if request.user.is_authenticated:
-        if Profile.objects.filter(user=request.user).exists():
-            return redirect('dashboard')
-        if request.method == 'POST':
-            first_name = request.POST['first_name']
-            last_name = request.POST['last_name']
-            email = request.POST['email']
-            gender  = request.POST['gender']
-            contact_no = request.POST['contact_no']
-            address = request.POST['address']
+    room_manager = RoomManager.objects.get(pk=room_manager_id)
+    
+    data = {
+        'first_name' : room_manager.manager.first_name,
+        'last_name' : room_manager.manager.last_name,
+        'email' : room_manager.manager.email,
+        'contact_no' : room_manager.manager.profile.contact_no,
+    }
 
-            # Updating User Model
-            user_obj = request.user
-            user_obj.email = email
-            user_obj.first_name = first_name
-            user_obj.last_name = last_name
-            user_obj.save()
+    return JsonResponse(data)
 
-            # Updating Profile Model
-            profile_obj = Profile( user=user_obj, gender=gender, contact_no=contact_no, address=address)
-            profile_obj.save()
+def customerDetailsAJAX(request):
+    customer_id = request.GET.get('customer_id', None)
 
-            return redirect('dashboard')
+    customer = User.objects.get(pk=customer_id)
+    
+    data = {
+        'first_name' : customer.first_name,
+        'last_name' : customer.last_name,
+        'email' : customer.email,
+        'contact_no' : customer.profile.contact_no,
+    }
 
-        return render(request, 'home/setprofile.html')
+    return JsonResponse(data)
 
-    return redirect('home')
