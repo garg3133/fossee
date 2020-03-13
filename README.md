@@ -58,16 +58,12 @@ For using the Room Slot Booking App, you must first have an account on the appli
 - After successful Sign Up, you'll be redirected to **Complete your Profile** Page where you'll be asked to enter your personal details.
 - Enter the required details and click on **Continue**.
 
-Congratulations, your account has been created successfully.
+Congratulations, your account has been created successfully. You'll be automatically logged into your account and redirected to your dashboard.
 
-after that, you'll be automatically logged in into your account and redirected to your dashboard.
+>By default, all new Users are designated as *Customers*.
 
 ### Login into your Account
-For logging in and using the Room Slot Booking App, you must first have an account on the applications.
-
-If you don't have an account, follow [Create an Account](#create-an-account) to create a new account.
-
-If you already have an account, follow the below steps to *Login* into your account.
+For logging in and using the Room Slot Booking App, you must first have an account on the applications. If you don't have an account, follow [Create an Account](#create-an-account) to create a new account. Otherwise, follow the below steps to *Login* into your account.
 
 - Click on the **Login** button on Homepage to get a Login modal.
 - Enter your *Username* and *Password*.
@@ -75,15 +71,8 @@ If you already have an account, follow the below steps to *Login* into your acco
 
 After successful Login, you'll be redirected to your dashboard.
 
-## User: Room Manager
-Room Manager is the user who will manage the ongoings of the application in terms of number of rooms to be made available to the customers and the time slots for which the rooms can be booked. Plus, he can also define the number of days for which the bookings can be done in advance.
-
-*There can be only one Room Manager at a time.*
-
->By default, all users are created as *Customers*.
-
 ### Promote a User to Room Manager
-Only **Admin** or **Superuser** can promote a *User* to *Room Manager* by following the below steps:
+Only Users with **Admin** or **Superuser** privileges can promote a *User* to *Room Manager* by following the below steps:
 
 - Go to the [Admin Page](https://localhost:8000/admin) of the application.
 - Enter your *Username* and *Password* and click on **Log In** button.
@@ -97,11 +86,49 @@ Only **Admin** or **Superuser** can promote a *User* to *Room Manager* by follow
 2. To ensure that at no point of time the application is without a Room Manager, Room Manager cannot be demoted to a Customer until adn unless a new user is promoted to Room Manager.
 3. All the changes in the post of Room Manager are stored in the database along with the start and end date of the tenure of each Room Manager.
 
+## User: Customer
+Customer is the user who will use the Room Slot Booking application for booking Rooms.
+
+### Book Room
+To book a Room using the Room Slot Booking application, follow the steps below:
+
+- Click on the **Book Room** pill on the *Dashboard*.
+- Select the Date for which the booking is to be made.
+- After selecting the Date, if you encounter an error, change the Booking Date accordingly.
+- If no error is encountered, the Rooms available on the selected date will get updated in the *Available Rooms* field through AJAX.
+- Select the *Room* from the list you wish to book.
+- If no *Time Slot* is free for the selected Room on the selected Date, you'll encounter an error. Change the Room or the Date accordingly.
+- If you don't encounter any error, the available Time Slots will get updated in the *Available Time Slots* field through AJAX.
+- Select the *Time Slot* you wish to book the selected Room for.
+- Click on the **Book** button.
+
+### View Bookings
+To view all your Previous Bookings, click on the **My Previous Bookings** pill on the *Dashboard*.
+
+The bookings are arranged in the order the Bookings were made (latest Booking first).
+
+Click on the Room Manager's *Username* corresponding to a Booking to know the details of the Room Manager at the time of Booking.
+
+#### Delete a Booking
+To cancel (delete) a Booking, click on the **Cancel** link corresponding to the Booking.
+
+### Update Profile
+To update your profile, follow the below steps:
+
+- Click on **Update Profile** pill on the *Dashboard*.
+- Change the values to be updated in the respective fields.
+- Click on the **Update** button.
+
+## User: Room Manager
+Room Manager is the user who will manage the ongoings of the application in terms of number of rooms to be made available to the customers and the time slots for which the rooms can be booked. Plus, he can also define the number of days for which the bookings can be done in advance.
+
+*There can be only one Room Manager at a time.*
+
 ### View Rooms, Time Slots and Pre-Booking Allowance
 The Room Manager can view
 - The number of Rooms he made available for the Customers to book from,
 - Time Slots for which the Rooms are available, and
-- The number of days for which the Customers can place bookings in advance
+- The number of days for which the Customers can place bookings in advance.
 
 under the **Home Tab** on his dashboard.
 
@@ -110,7 +137,7 @@ To update number of Rooms to be made available for the Customers to book from, f
 
 - On your *Dashboard*, click on the **Manage Rooms** dropdown pill.
 - Under **Manage Rooms** dropdown, click on **No. of Rooms**.
-- Enter the U*pdated Number of Rooms* to be made available to the Customers in the text field provided (Refer to the table above for currently available Number of Rooms).
+- Enter the *Updated Number of Rooms* to be made available to the Customers in the text field provided (Refer to the table above for currently available Number of Rooms).
 - Click on **Update** button.
 
 **Note:**
@@ -157,3 +184,27 @@ To update an existing Tme Slot, continue with the following steps:
 All the updates will take atleast one day to come into effect (the day on which it is updated) in the best case (if there are no Pre-Bookings on the previous Time Slot and the updated new Time Slot does not overlaps with any other existing Time Slot).
 
 ### Update Pre-Booking Allowance
+Pre-Booking Allowance refers to the number of days for which the Customers can book Rooms in advance.
+
+To update the Pre-Booking Allowance, follow the below steps:
+
+- On your *Dashboard*, click on the **Manage Rooms** dropdown pill.
+- Under **Manage Rooms** dropdown, click on **Pre-Booking Allowance**.
+- Enter the *Updated Pre-Booking Allowance* in the text field provided (Refer to the table above for current Pre-Booking Allowance).
+- Click on **Update** button.
+
+Unlike the updation in Number of Rooms and Time Slots, the updation in Pre-Booking Allowance will take effect from the very moment it is updated.
+
+### View the Summary of all the Previous Bookings
+Click on the **Bookings Summary** pill on the *Dashboard* to view the Summary of all the previous, current and future Bookings.
+
+The bookings are arranged in the order of Date (latest Date first) and then the ascending order of Room Number and Time Slot.
+
+Click on the Customer's *Username* corresponding to a Booking to know the details of the Customer and on the Room Manager's *Username* to know the details of the Room Manager at the time of Booking.
+
+### Update Profile
+To update your profile, follow the below steps:
+
+- Click on **Update Profile** pill on the *Dashboard*.
+- Change the values to be updated in the respective fields.
+- Click on the **Update** button.

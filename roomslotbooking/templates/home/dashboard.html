@@ -74,11 +74,11 @@
                         <input name="booked-on" data-date-format="yyyy-mm-dd" id="booking-date" class="form-control" required>
                     </div>
                     <div class="col-md-3 mb-3" id="available-rooms-div">
-                        <label for="available-rooms">Available Room</label>
+                        <label for="available-rooms">Available Room(s)</label>
                         <select name="booking-room" class="custom-select d-block w-100" id="available-rooms" required></select>
                     </div>
                     <div class="col-md-3 mb-3" id="available-time-slots-div">
-                        <label for="available-time-slots">Available Time Slot</label>
+                        <label for="available-time-slots">Available Time Slot(s)</label>
                         <select name="booking-time-slot" class="custom-select d-block w-100" id="available-time-slots" required></select>
                     </div>
                 </div>
@@ -611,7 +611,7 @@
             },
             dataType: 'json',
             success: function (data) {
-                details = '<p class="mb-1"><span class="font-weight-bold">Name: </span>' + data.first_name + ' ' + data.last_name + '</p><p class="mb-1"><span class="font-weight-bold">Email: </span> ' + data.email + '</p><p class="mb-1"><span class="font-weight-bold">Contact No.: </span> ' + data.contact_no + '</p>';
+                details = '<p class="mb-1"><span class="font-weight-bold">Name: </span>' + data.first_name + ' ' + data.last_name + '</p><p class="mb-1"><span class="font-weight-bold">Email: </span> ' + data.email + '</p><p class="mb-1"><span class="font-weight-bold">Contact No.: </span> ' + data.contact_no + '</p><p class="mb-1"><span class="font-weight-bold">Address: </span>' + data.address + '</p>';
                 $('#cus-details-modal-body').html(details);
                 $('#cus-details-modal').modal('show');
             }
