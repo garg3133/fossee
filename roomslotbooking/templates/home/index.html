@@ -32,8 +32,8 @@
             <form method="post">
                 {% csrf_token %}
                 <h1>Sign in</h1>
-                <span id="login-form-info"></span>
-                <!-- <span class="form-error"> {{login_error}} </span> -->
+                <span id="login-form-info">{{login_error}}</span>
+                <!-- <span style="color: red;">  </span> -->
                 <input type="text" name="username" placeholder="Username" required />
                 <!-- <input type="email" name="email" placeholder="Email" required /> -->
                 <input type="password" name="password" placeholder="Password" required />
@@ -53,12 +53,12 @@
             <form method="post">
                 {% csrf_token %}
                 <h1>Sign Up</h1>
-                <span id="login-form-info"></span>
+                <span id="login-form-info">{{signup_error}}</span>
+                <!-- <span style="color: red;">  </span> -->
                 <input type="text" name="username" placeholder="Username" required/>
-                <!-- <input type="email" name="email" placeholder="Email" required /> -->
                 <input type="password" name="password1" placeholder="Password" required />
                 <input type="password" name="password2" placeholder="Confirm Password" required />
-                <!-- <span class="form-error"> {{signup_error}} </span> -->
+                
 
                 <button type="submit" name="submit" value="signup">Sign Up</button>
                 <p>Already have an account? <span onclick="show_login_modal()" style="cursor: pointer; display: inline-block;">Sign In.</span></p>
@@ -70,4 +70,13 @@
 
 {% block bootstrap_scripts %}
 <script src="{% static 'home/js/main.js' %}"></script>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    if ("{{ login_error }}") show_login_modal();
+    else if ("{{ signup_error }}") show_signup_modal();
+
+</script>
+
 {% endblock %}

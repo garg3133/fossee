@@ -432,7 +432,7 @@ def bookingDateChangedAJAX(request):
         end_date = room_obj.start_date - timedelta(days=1)
         room_objs = Rooms.objects.filter(end_date=end_date)
         for room_obj in room_objs:
-            if room_obj.start_date <= room_obj.end_time:  # Room object is valid
+            if room_obj.start_date <= room_obj.end_date:  # Room object is valid
                 available_rooms = room_obj.rooms
                 break
     data['rooms'] = available_rooms
