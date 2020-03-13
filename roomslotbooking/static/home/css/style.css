@@ -137,6 +137,7 @@ section {
 
 #login-form-info{
     color: #ff0000;
+    margin-bottom: 10px;
 }
 
 .modal a {
@@ -185,11 +186,19 @@ section {
 	text-align: center;
 }
 
-.modal input {
+#login-modal input {
 	background-color: #eee;
 	border: none;
 	padding: 15px 15px;
 	margin: 15px 0;
+	width: 100%;
+}
+
+#signup-modal input {
+	background-color: #eee;
+	border: none;
+	padding: 15px 15px;
+	margin: 10px 0;
 	width: 100%;
 }
 
