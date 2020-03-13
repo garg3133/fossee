@@ -53,6 +53,9 @@ class Rooms(models.Model):
     start_date = models.DateField()  # Start from the next day
     end_date = models.DateField(null=True)
 
+    class Meta:
+        verbose_name_plural = 'Rooms'
+
     def __str__(self):
         return str(self.rooms)
 
