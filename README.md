@@ -9,9 +9,25 @@ FOSSEE - Room Slot Booking
 - [Installation](#installation)
     - [Requirements](#requirements)
     - [How to run it?](#how-to-run-it)
-- [Usage](#typo3-setup)
-    - [Extension](#extension)
-    - [Database](#database)
+- [Usage](#usage)
+    - [Create an Account](#create-an-account)
+    - [Login into your Account](#login-into-your-account)
+    - [Promote a User to Room Manager](#promote-a-user-to-room-manager)
+    - [User: Customer](#user-customer)
+        - [Book Room](#book-room)
+        - [View Bookings](#view-bookings)
+            - [Delete a Booking](#delete-a-booking)
+        - [Update Profile](#update-profile)
+    - [User: Room Manager](#user-room-manager)
+        - [View Rooms, Time Slots and Pre-Booking Allowance](#view-rooms-time-slots-and-pre-booking-allowance)
+        - [Update Number of Rooms](#update-number-of-rooms)
+        - [Update Time Slots](#update-time-slots)
+            - [Add a new Time Slot](#add-a-new-time-slot)
+            - [Delete an existing Time Slot](#delete-an-existing-time-slot)
+            - [Update an existing Time Slot](#update-an-existing-time-slot)
+        - [Update Pre-Booking Allowance](#update-pre-booking-allowance)
+        - [View the Summary of all the Previous Bookings](#view-the-summary-of-all-the-previous-bookings)
+        - [Update Profile](#update-profile-1)
 - [Page setup](#page-setup)
     - [Upload the page tree file](#upload-the-page-tree-file)
     - [Go to the import view](#go-to-the-import-view)
@@ -30,21 +46,27 @@ And additional requirements are in **requirements.txt**
 
 
 ### How to run it?
-  * Download and install Python 3.7
-  * Download and install Git.
-  * Fork the Repository.
-  * Clone the repository to your local machine `$ git clone https://github.com/<your-github-username>/fossee.git`
-  * Change directory to fossee `$ cd fossee`
-  * Install virtualenv `$ pip3 install virtualenv`  
-  * Create a virtual environment `$ virtualenv env -p python3.7`  
-  * Activate the env: `$ source env/bin/activate`
-  * Install the requirements: `$ pip3 install -r requirements.txt`
-  * Change directory to roomslotbooking `$ cd roomslotbooking`
-  * Make migrations `$ python manage.py makemigrations`
-  * To Make migrations for a particular app `$ python manage.py makemigrations <App name>`
-  * Migrate the changes to the database `$ python manage.py migrate`
-  * Create admin `$ python manage.py createsuperuser`
-  * Run the server `$ python manage.py runserver`
+- Download and install Python 3.7
+- Download and install Git.
+- Fork the Repository.
+- Clone the repository to your local machine `$ git clone https://github.com/<your-github-username>/fossee.git`
+- Change directory to fossee `$ cd fossee`
+- Install virtualenv `$ pip3 install virtualenv`  
+- Create a virtual environment `$ virtualenv env -p python3.7`  
+- Activate the env: `$ source env/bin/activate`
+- Install the requirements: `$ pip3 install -r requirements.txt`
+- Change directory to roomslotbooking `$ cd roomslotbooking`
+- Make migrations `$ python manage.py makemigrations`
+- To Make migrations for a particular app `$ python manage.py makemigrations <App name>`
+- Migrate the changes to the database `$ python manage.py migrate`
+- Create admin `$ python manage.py createsuperuser`
+- Run the server `$ python manage.py runserver`
+
+### Running Tests
+- Open Project in **fossee** directory.
+- Activate the env: `$ source env/bin/activate`
+- Change directory to roomslotbooking `$ cd roomslotbooking`
+- Run the tests: `$ ./manage.py test home`
  
 ## Usage
 
@@ -167,6 +189,8 @@ To add a new Time Slot, continue with the following steps:
     - A modal will appear asking for deletion of the existing overlapping Time Slots.
     - If you wish to *delete the overlapping Time Slots*, click the **Delete** button. *The addition of the new Time Slot and deletion of the overlapping Time Slots will take effect from the day next to the day of last booking on any of the overlapping Time Slots*.
     - If you *don't* wish to *delete the overlapping Time Slots*, either [Update the overlapping Time Slots](#update-an-existing-time-slot) and then add new Time Slot or change the new Time Slot itself.
+
+**Note:** The Start Time and End Time of the new Time Slot must belong to the same day.
 
 #### Delete an existing Time Slot
 To delete an existing Tme Slot, continue with the following steps:

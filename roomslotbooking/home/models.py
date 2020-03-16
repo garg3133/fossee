@@ -50,7 +50,7 @@ class RoomManager(models.Model):
 
 class Rooms(models.Model):
     rooms = models.IntegerField()
-    start_date = models.DateField()  # Start from the next day
+    start_date = models.DateField()
     end_date = models.DateField(null=True)
 
     class Meta:
@@ -62,7 +62,7 @@ class Rooms(models.Model):
 class TimeSlot(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
-    start_date = models.DateField()  # Start from the next day
+    start_date = models.DateField()
     end_date = models.DateField(null=True)
 
     def __str__(self):

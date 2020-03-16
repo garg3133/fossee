@@ -1,9 +1,8 @@
 from datetime import datetime, date, timedelta
 from django.shortcuts import render, redirect
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
-# import json
 from django.forms.models import model_to_dict
-from django.core import serializers
+from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import (
@@ -18,9 +17,15 @@ from .models import (
 # Create your views here.
 def index(request):
     if request.user.is_authenticated:
-        # return redirect('dashboard')
+        ''' If User is autheticated, check if User profile is complete
+            If Profile is complete, redirect to setprofile
+            Else redirect to dashboard
+        '''
+        if not Profile.objects.filter(user=request.user).exists():
+            return redirect('setprofile')
         return redirect('dashboard')
 
+    # Login and SignUp requests
     if request.method == 'POST':
         if request.POST.get('submit') == 'login':
             username = request.POST['username']
@@ -28,9 +33,12 @@ def index(request):
 
             user = authenticate(username=username, password=password)
             if user is not None:
+                # Correct Username and Password entered
                 login(request, user)
+                messages.success(request, 'Logged in successfully!')
                 return redirect('dashboard')
             else:
+                # Invalid Username or Password entered
                 context = {
                     'login_error' : "Invalid Username or Password",
                 }
@@ -44,25 +52,29 @@ def index(request):
             error = ''
             obj = User.objects.filter(username=username)
             if obj.exists():
+                # Username already exists
                 error = "Account with entered username already exists"
                 return render(request, "home/index.html", {'signup_error' : error})
             if password1 and password2 and password1 != password2:
+                # Passwords don't match
                 error = "Passwords don't match"
                 return render(request, "home/index.html", {'signup_error' : error})
             
+            # Valid Username and Passwords entered
             obj = User(username = username)
             obj.set_password(password1)
             obj.save()
 
+            # Authenticate and Login the User
             user = authenticate(username=username, password=password1)
             login(request, user)
-            return redirect('dashboard')
+            return redirect('setprofile')
 
     return render(request, 'home/index.html')
 
 def dashboard(request):
     if not request.user.is_authenticated:
-        return render(request, 'home/index.html')
+        return redirect('home')
 
     if not Profile.objects.filter(user=request.user).exists():
         return redirect('setprofile')
@@ -79,14 +91,14 @@ def dashboard(request):
     # All Bookings
     all_bookings = Booking.objects.all().order_by('-date', 'room', 'time_slot__start_time', 'cancelled')
 
-    # Pre-Booking Allowance
+    # Get Pre-Booking Allowance
     allowance = PreBookingAllowance.objects.filter(end_date=None)
     if allowance.exists():
         allowance = allowance[0]
     else:
         allowance = "Not yet updated!"
 
-    # Rooms
+    # Get Rooms
     rooms_context1 = ''
     rooms_context2 = ''
     rooms = Rooms.objects.filter(end_date=None)
@@ -103,11 +115,12 @@ def dashboard(request):
     else:
         rooms_context1 = "Not yet updated!"
 
-    # Time Slots
+    # Get Time Slots
     time_slots_list = []
     time_slot_dict = {}
     time_slots = TimeSlot.objects.all().order_by('start_time')
     for time_slot in time_slots:
+        # Non-deleted time slots
         if time_slot.end_date is None:
             time_slot_dict['id'] = time_slot.id
             time_slot_dict['start_time'] = str(time_slot.start_time)
@@ -118,6 +131,7 @@ def dashboard(request):
             else:
                 time_slot_dict['remark'] = ''
             time_slots_list.append(time_slot_dict.copy())
+        # Time Slots deleted but deletion not came under effect
         elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:
             time_slot_dict['id'] = time_slot.id
             time_slot_dict['start_time'] = str(time_slot.start_time)
@@ -148,10 +162,12 @@ def dashboard(request):
     # Handling Form Data from Templates
     if request.method == 'POST':
         if request.POST.get('submit') == 'book-room':
+            # Form Data
             booking_date_str = request.POST['booked-on']
             booking_room = request.POST['booking-room']
             booking_time_slot_id = request.POST['booking-time-slot']
 
+            # Create Booking Instance
             booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
             booking_time_slot = TimeSlot.objects.get(pk=booking_time_slot_id)
             room_manager = RoomManager.objects.filter(tenure_end=None)[0]
@@ -159,46 +175,76 @@ def dashboard(request):
             booking_obj = Booking(customer=request.user, date=booking_date, room=booking_room, time_slot=booking_time_slot, room_manager=room_manager)
             booking_obj.save()
 
-            return HttpResponseRedirect('/')
+            # Show Success Message on dashboard
+            messages.success(request, 'Room booked successfully!')
+
+            return HttpResponseRedirect('/dashboard/')
 
         elif request.POST.get('submit') == 'allowance':
+            # Form Data
             new_allowance_days = request.POST['allowance']
+
+            # Check is data is valid
             if int(new_allowance_days) < 0:
                 context1 = {
                     'allowance_error' : "Please enter a valid Pre-Booking Allowance!",
                 }
                 context.update(context1)
                 return render(request, 'home/dashboard.html', context)
+
+            # Check if older instance of allownace exists
             old_allowance = PreBookingAllowance.objects.filter(end_date=None)
+
+            # Close old allowance if it exists
             if old_allowance.exists():
                 old_allowance = old_allowance[0]
                 old_allowance.end_date = datetime_now
                 old_allowance.save()
 
+            # Create new Allowance instance
             new_allowance = PreBookingAllowance(days=new_allowance_days)
             new_allowance.save()
 
-            return HttpResponseRedirect('/dashboard')
+            # Show Success Message on dashboard
+            messages.success(request, 'Pre-Booking Allowance changed successfully!')
+
+            return HttpResponseRedirect('/dashboard/')
 
         elif request.POST.get('submit') == 'rooms':
+            # Form Data
             new_rooms = request.POST['rooms']
-            last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
-            if last_booking.exists():
-                last_booking = last_booking[0]
+
+            # Check is data is valid
+            if int(new_rooms) < 0:
+                context1 = {
+                    'rooms_error' : "Please enter valid Number of Rooms!",
+                }
+                context.update(context1)
+                return render(request, 'home/dashboard.html', context)
+
+            # Fetch Bookings Query Set sorted by date
+            bookings = Booking.objects.filter(cancelled=False).order_by('-date')
+
+            # If bookings exists and last booking is after today
+            if bookings.exists() and bookings[0].date > today_date:
+                last_booking = bookings[0]
                 last_booking_date = last_booking.date
 
-                # Change end_date of older instance of Rooms
+                # Close older instance of Rooms
                 old_rooms_obj = Rooms.objects.filter(end_date=None)
                 if old_rooms_obj.exists():
                     old_rooms_obj = old_rooms_obj[0]
                     old_rooms_obj.end_date = last_booking_date
                     old_rooms_obj.save()
+
                 # Create new instance of Rooms
                 new_rooms_start_date = last_booking_date + timedelta(days=1)
                 rooms_obj = Rooms(rooms=new_rooms, start_date=new_rooms_start_date)
                 rooms_obj.save()
+
+            # If no booking exists or last booking is for today or already completed
             else:
-                # Change end_date of older instance of Rooms
+                # Close older instance of Rooms
                 old_rooms_obj = Rooms.objects.filter(end_date=None)
                 if old_rooms_obj.exists():
                     old_rooms_obj = old_rooms_obj[0]
@@ -212,35 +258,37 @@ def dashboard(request):
                 rooms_obj = Rooms(rooms=new_rooms, start_date=new_rooms_start_date)
                 rooms_obj.save()
 
-            return HttpResponseRedirect('/dashboard')
+            # Show Success Message on dashboard
+            messages.success(request, 'Rooms updated successfully!')
+
+            return HttpResponseRedirect('/dashboard/')
 
         elif request.POST.get('submit') == 'time_slot':
+            # Form Data
             new_start_time_str = request.POST['start_time']
             new_end_time_str = request.POST['end_time']
 
+            # Create Time objects from Form Data
             new_start_time = datetime.strptime(new_start_time_str, '%H:%M').time()
             new_end_time = datetime.strptime(new_end_time_str, '%H:%M').time()
 
+            # Check if data is valid
             if new_end_time <= new_start_time:
                 context1 = {
-                    'time_slot_error' : "Please select a valid time slot.",
+                    'time_slot_error' : "Please select a valid time slot!",
                 }
                 context.update(context1)
                 return render(request, 'home/dashboard.html', context)
 
-            # last_booking = Booking.objects.filter(cancelled=False).order_by('-date')
-            # if last_booking.exists():
-            #     last_booking = last_booking[0]
-            #     last_booking_date = last_booking.date
-            #     new_time_slot_start_date = last_booking_date + timedelta(days=1)
-            # else:
-            #     new_time_slot_start_date = today_date + timedelta(days=1)
-
             del_time_slots_list = []  # Time Slots to be deleted
             overlapped_time_slots_list = []  # Other overlapped time slots (need not to be deleted)
-            overlapped_time_slot_dict = {}
+            overlapped_time_slot_dict = {}  # Time Slot dictionary to be appended in above lists
+
+            # Fetch all existing time slots
             time_slots = TimeSlot.objects.all().order_by('start_time')
+
             for time_slot in time_slots:
+                # If time slot is not deleted
                 if time_slot.end_date is None:
                     if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
                         overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
@@ -250,13 +298,13 @@ def dashboard(request):
                         else:
                             overlapped_time_slot_dict['remark'] = ''
                         del_time_slots_list.append(overlapped_time_slot_dict.copy())
+
+                # If time slot is already deleted by not yet came into effect
                 elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:
                     if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
-                        # overlapped_time_slot_dict['start_time'] = str(time_slot.start_time)
-                        # overlapped_time_slot_dict['end_time'] = str(time_slot.end_time)
-                        # overlapped_time_slot_dict['remark'] = '(Upto ' + str(time_slot.end_date) + ')'
                         overlapped_time_slots_list.append(time_slot)
 
+            # If some time slots need to be deleted
             if len(del_time_slots_list) > 0:
                 # Ask for deleting those time slots
                 context1 = {
@@ -266,6 +314,8 @@ def dashboard(request):
                 }
                 context.update(context1)
                 return render(request, 'home/dashboard.html', context)
+
+            # If no time slot needs to be deleted but some already deleted time slots are overlapping
             elif len(overlapped_time_slots_list) > 0:
                 # Find max end date of overlaps
                 max_end_date = today_date
@@ -273,18 +323,31 @@ def dashboard(request):
                     if time_slot.end_date > max_end_date:
                         max_end_date = time_slot.end_date
 
+                # New start date one day after max end date
                 new_start_date = max_end_date + timedelta(days=1)
 
+                # Create new time slot instance
                 new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_start_date)
                 new_time_slot.save()
-                return HttpResponseRedirect('/')
 
+                # Show Success Message on dashboard
+                messages.success(request, 'Time Slot added successfully!')
+
+                return HttpResponseRedirect('/dashboard/')
+
+            # If no time slot overlaps
             else:
+                # Create new time slot instance
                 new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=today_date)
                 new_time_slot.save()
-                return HttpResponseRedirect('/')
+
+                # Show Success Message on dashboard
+                messages.success(request, 'Time Slot added successfully!')
+
+                return HttpResponseRedirect('/dashboard/')
 
         elif request.POST.get('submit') == 'del_ts':
+            # Form Data
             new_start_time_str = request.POST['start_time']
             new_end_time_str = request.POST['end_time']
 
@@ -292,11 +355,14 @@ def dashboard(request):
             new_start_time = datetime.strptime(new_start_time_str, '%H:%M').time()
             new_end_time = datetime.strptime(new_end_time_str, '%H:%M').time()
 
-            max_end_date = today_date
+            max_end_date = today_date  # Max end date initialized
             del_time_slots_list = []  # Time Slots to be deleted
+
+            # Fetch all Time Slots
             time_slots = TimeSlot.objects.all().order_by('start_time')
             for time_slot in time_slots:
-                if time_slot.end_date is None:   # Time Slots to be deleted if overlaping
+                # Time Slots to be deleted if overlaping
+                if time_slot.end_date is None:
                     if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
                         del_time_slots_list.append(time_slot)
 
@@ -304,7 +370,8 @@ def dashboard(request):
                         if booking.exists() and (booking[0].date > max_end_date):
                             max_end_date = booking[0].date
 
-                elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:   # Other possible overlapping Time Slots (already deleted)
+                # Other possible overlapping Time Slots (already deleted)
+                elif time_slot.end_date >= today_date and time_slot.start_date <= time_slot.end_date:
                     if time_overlaps(new_start_time, new_end_time, time_slot.start_time, time_slot.end_time):
                         # overlapped_time_slots_list.append(time_slot)
                         if time_slot.end_date > max_end_date:
@@ -316,14 +383,19 @@ def dashboard(request):
                     time_slot.end_date = max_end_date
                     time_slot.save()
 
-            # Creating the new time slot
+            # Creating the new time slot instance
             new_start_date = max_end_date + timedelta(days=1)
 
             new_time_slot = TimeSlot(start_time=new_start_time, end_time=new_end_time, start_date=new_start_date)
             new_time_slot.save()
-            return HttpResponseRedirect('/')
+
+            # Show Success Message on dashboard
+            messages.success(request, 'New Time Slot added successfully!')
+
+            return HttpResponseRedirect('/dashboard/')
 
         elif request.POST.get('submit') == 'update-profile':
+            # Form Data
             first_name = request.POST['first_name']
             last_name = request.POST['last_name']
             email = request.POST['email']
@@ -345,15 +417,21 @@ def dashboard(request):
             profile_obj.address = address
             profile_obj.save()
 
-            return HttpResponseRedirect('/')
+            # Show Success Message on dashboard
+            messages.success(request, 'Profile updated successfully!')
+
+            return HttpResponseRedirect('/dashboard/')
 
     return render(request, 'home/dashboard.html', context)
 
 def setprofile(request):
     if request.user.is_authenticated:
+        # If User Profile already exists
         if Profile.objects.filter(user=request.user).exists():
             return redirect('dashboard')
+
         if request.method == 'POST':
+            # Form Data
             first_name = request.POST['first_name']
             last_name = request.POST['last_name']
             email = request.POST['email']
@@ -497,6 +575,7 @@ def customerDetailsAJAX(request):
         'last_name' : customer.last_name,
         'email' : customer.email,
         'contact_no' : customer.profile.contact_no,
+        'address' : customer.profile.address,
     }
 
     return JsonResponse(data)

@@ -9,59 +9,49 @@
     </div>
 </div>
 
-<!-- <div class="container h-100">
-    <div class="row justify-content-center">
-        <div class="col-4 col-sm-3 bg-light py-5">
-            <ul class="nav nav-pills flex-column text-center">
-                <li class="nav-item m-auto">
-                    <a class="nav-link active" href="#section1">Book Room</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="#section1">My Previous Bookings</a>
-                </li>
-            </ul>
-        </div>
-        <div class="col-8 col-sm-9">
-
-        </div>
-    </div>
-</div> -->
-
 <div class="container">
     <ul class="nav nav-pills justify-content-center">
+
+        <!-- For Customer -->
         {% if user.profile.room_manager is False %}
         <li class="nav-item">
-            <a class="nav-link active" data-toggle="pill" href="#book-room">Book Room</a>
+            <a class="nav-link active" id="book-room-pill" data-toggle="pill" href="#book-room">Book Room</a>
         </li>
         <li class="nav-item">
-            <a class="nav-link" data-toggle="pill" href="#previous-bookings">My Previous Bookings</a>
+            <a class="nav-link" id="previous-bookings-pill" data-toggle="pill" href="#previous-bookings">My Previous Bookings</a>
         </li>
+
+        <!-- For Room Manager -->
         {% else %}
         <li class="nav-item">
-            <a class="nav-link active" data-toggle="pill" href="#home">Home</a>
+            <a class="nav-link active" id="home-pill" data-toggle="pill" href="#home">Home</a>
         </li>
         <li class="nav-item dropdown">
-            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#">Manage Rooms</a>
+            <a class="nav-link dropdown-toggle" id="manage-rooms-pill" data-toggle="dropdown" href="#">Manage Rooms</a>
             <div class="dropdown-menu">
-              <a class="dropdown-item" data-toggle="pill" href="#pre-booking">Pre-Booking Allowance</a>
-              <a class="dropdown-item" data-toggle="pill" href="#rooms">No. of Rooms</a>
-              <a class="dropdown-item" data-toggle="pill" href="#time-slots">Time Slots</a>
+              <a class="dropdown-item" id="pre-booking-pill" data-toggle="pill" href="#pre-booking">Pre-Booking Allowance</a>
+              <a class="dropdown-item" id="rooms-pill" data-toggle="pill" href="#rooms">No. of Rooms</a>
+              <a class="dropdown-item" id="time-slots-pill" data-toggle="pill" href="#time-slots">Time Slots</a>
             </div>
           </li>
-        <!-- <li class="nav-item">
-            <a class="nav-link" data-toggle="pill" href="#manage">Manage Rooms</a>
-        </li> -->
         <li class="nav-item">
-            <a class="nav-link" data-toggle="pill" href="#summary">Bookings Summary</a>
+            <a class="nav-link" id="summary-pill" data-toggle="pill" href="#summary">Bookings Summary</a>
         </li>
         {% endif %}
+
+        <!-- For Everyone -->
         <li class="nav-item">
-            <a class="nav-link" data-toggle="pill" href="#update-profile">Update Profile</a>
+            <a class="nav-link" id="update-profile-pill" data-toggle="pill" href="#update-profile">Update Profile</a>
         </li>
     </ul>
 
     <div class="tab-content">
+
+        <!-- For Customer -->
         {% if user.profile.room_manager is False %}
+
+        <!-- For Booking Room -->
+
         <div class="tab-pane container active" id="book-room">
             <form method="POST">
                 {% csrf_token %}
@@ -90,6 +80,9 @@
                 </div>
             </form>
         </div>
+
+        <!-- Customers all Previous Bookings -->
+
         <div class="tab-pane container fade" id="previous-bookings">
             <div class="row justify-content-center my-4 mx-0">
                 <div class="col-12 col-md-10 border rounded">
@@ -155,7 +148,12 @@
                 </div>
             </div>
         </div>
+
+        <!-- For Room Manager -->
         {% else %}
+
+        <!-- Room Manager HOME -->
+
         <div class="tab-pane container active" id="home">
             <div class="row justify-content-center mt-4">
                 <div class="col-12 col-md-8">
@@ -198,6 +196,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Update Pre-Booking Allowance -->
+
         <div class="tab-pane container fade" id="pre-booking">
             <div class="row justify-content-center">
                 <div class="col-10 col-sm-8 col-lg-4">
@@ -214,7 +215,6 @@
                                 </tr>
                             </tbody>
                         </table>
-                        <!-- <p class="text-center">Current Allowance: {{ allowance }}</p> -->
                         <label for="new-allowance-input">New Pre-Booking Allowance</label>
                         <input name="allowance" type="number" class="form-control" id="new-allowance-input" required>
                         <button type="submit" class="btn btn-primary btn-block my-4" name="submit" value="allowance">Update</button>
@@ -225,6 +225,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Update Number of Rooms -->
+
         <div class="tab-pane container fade" id="rooms">
             <div class="row justify-content-center">
                 <div class="col-10 col-sm-8 col-lg-4">
@@ -264,6 +267,9 @@
                 </div>
             </div>
         </div>
+
+        <!-- Update Time Slots -->
+
         <div class="tab-pane container fade" id="time-slots">
             <div class="row justify-content-center">
                 <div class="col-8">
@@ -307,8 +313,10 @@
                     </form>
                 </div>
             </div>
-            
         </div>
+
+        <!-- All Bookings Summary -->
+
         <div class="tab-pane container fade" id="summary">
             <div class="row justify-content-center my-4 mx-0">
                 <div class="col-12 col-md-10 border rounded">
@@ -361,6 +369,11 @@
             </div>
         </div>
         {% endif %}
+
+        <!-- For Everyone -->
+
+        <!-- Update Profile -->
+
         <div class="tab-pane container fade" id="update-profile">
             <div class="row justify-content-center mt-4">
                 <div class="col-12 col-md-8">
@@ -474,9 +487,33 @@
     </div>
 </div>
 
+<!-- Toast -->
+{% for message in messages %}
+<div class="row justify-content-center">
+    <div style="position: fixed; bottom: 25px; left: 10px; z-index: 10;">
+        <div class="toast bg-success {{ message.tags }}" id="alert_toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="1500">
+            <div class="toast-body p-2 px-3">
+                <strong class="mr-auto">{{message}}</strong>
+                <button type="button" class="ml-3 close" style="margin-top: -3px;" data-dismiss="toast" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+  </div>
+{% endfor %}
+
 {% endblock %}
 
 {% block scripts %}
+<!-- For Toasts -->
+<script>
+    if("{{messages}}"){
+        $('#alert_toast').toast('show');
+    }
+</script>
+
+<!-- For Time Pickers -->
 <script>
     $('#timepicker1').timepicker({
         uiLibrary: 'bootstrap4'
@@ -486,12 +523,39 @@
     });
 </script>
 
+<!-- For Error Messages on Dashboard -->
 <script>
     if("{{time_slot_error}}"){
         document.getElementById("home").classList.remove('active')
         document.getElementById("home").classList.add('fade')
         document.getElementById("time-slots").classList.remove('fade')
         document.getElementById("time-slots").classList.add('active')
+
+        document.getElementById("home-pill").classList.remove('active')
+        document.getElementById("time-slots-pill").classList.add('active')
+        document.getElementById("manage-rooms-pill").classList.add('active')
+    }
+
+    if("{{allowance_error}}"){
+        document.getElementById("home").classList.remove('active')
+        document.getElementById("home").classList.add('fade')
+        document.getElementById("pre-booking").classList.remove('fade')
+        document.getElementById("pre-booking").classList.add('active')
+
+        document.getElementById("home-pill").classList.remove('active')
+        document.getElementById("pre-booking-pill").classList.add('active')
+        document.getElementById("manage-rooms-pill").classList.add('active')
+    }
+
+    if("{{rooms_error}}"){
+        document.getElementById("home").classList.remove('active')
+        document.getElementById("home").classList.add('fade')
+        document.getElementById("rooms").classList.remove('fade')
+        document.getElementById("rooms").classList.add('active')
+
+        document.getElementById("home-pill").classList.remove('active')
+        document.getElementById("rooms-pill").classList.add('active')
+        document.getElementById("manage-rooms-pill").classList.add('active')
     }
 
     if("{{del_time_slots_list}}"){
@@ -627,9 +691,6 @@
         autoclose: true,
         todayHighlight: true,
     });
-    // if(document.getElementById("extra-info-1").value.length>0)
-    // 	$('#booking-date').datepicker("setDate", "{{ selected_date|date:'Y-m-d' }}");
-    // else
     $('#booking-date').datepicker("setDate", new Date());
     
 </script>
