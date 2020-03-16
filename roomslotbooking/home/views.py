@@ -161,6 +161,8 @@ def dashboard(request):
 
     # Handling Form Data from Templates
     if request.method == 'POST':
+
+        # Book Room
         if request.POST.get('submit') == 'book-room':
             # Form Data
             booking_date_str = request.POST['booked-on']
@@ -180,6 +182,7 @@ def dashboard(request):
 
             return HttpResponseRedirect('/dashboard/')
 
+        # Update Pre-Booking Allowance
         elif request.POST.get('submit') == 'allowance':
             # Form Data
             new_allowance_days = request.POST['allowance']
@@ -210,6 +213,7 @@ def dashboard(request):
 
             return HttpResponseRedirect('/dashboard/')
 
+        # Update Number of Rooms
         elif request.POST.get('submit') == 'rooms':
             # Form Data
             new_rooms = request.POST['rooms']
@@ -263,6 +267,7 @@ def dashboard(request):
 
             return HttpResponseRedirect('/dashboard/')
 
+        # Add new Time Slots
         elif request.POST.get('submit') == 'time_slot':
             # Form Data
             new_start_time_str = request.POST['start_time']
@@ -346,6 +351,7 @@ def dashboard(request):
 
                 return HttpResponseRedirect('/dashboard/')
 
+        # Delete overlapping Time Slots after Add Time Slot Request
         elif request.POST.get('submit') == 'del_ts':
             # Form Data
             new_start_time_str = request.POST['start_time']
@@ -394,6 +400,7 @@ def dashboard(request):
 
             return HttpResponseRedirect('/dashboard/')
 
+        # Update Profile
         elif request.POST.get('submit') == 'update-profile':
             # Form Data
             first_name = request.POST['first_name']
@@ -424,6 +431,7 @@ def dashboard(request):
 
     return render(request, 'home/dashboard.html', context)
 
+# Complete Profile after SignUp
 def setprofile(request):
     if request.user.is_authenticated:
         # If User Profile already exists
@@ -456,6 +464,7 @@ def setprofile(request):
 
     return redirect('home')
 
+# Delete Time Slot Request
 def deleteTimeSlot(request, uid):
     time_slot = TimeSlot.objects.get(pk=uid)
 
@@ -468,15 +477,23 @@ def deleteTimeSlot(request, uid):
         time_slot.end_date = end_date
         time_slot.save()
 
+    # Show Success Message on dashboard
+    messages.success(request, 'Time Slot Deleted successfully!')
+
     return redirect('dashboard')
 
+# Delete Booking Request
 def deleteBooking(request, uid):
     booking = Booking.objects.get(pk=uid)
     booking.cancelled = True
     booking.save()
 
+    # Show Success Message on dashboard
+    messages.success(request, 'Booking Cancelled successfully!')
+
     return redirect('dashboard')
 
+# AJAX request after Booking Date is Changed
 def bookingDateChangedAJAX(request):
     booking_date_str = request.GET.get('booking_date', None)
     booking_date = datetime.strptime(booking_date_str, '%Y-%m-%d').date()
@@ -516,6 +533,7 @@ def bookingDateChangedAJAX(request):
     data['rooms'] = available_rooms
     return JsonResponse(data)
 
+# AJAX request after Booking Room Number is Changed
 def bookingRoomChangedAJAX(request):
     booking_room = request.GET.get('booking_room', None)
     booking_date_str = request.GET.get('booking_date', None)

@@ -21,7 +21,7 @@ class IndexViewTest(TestCase):
 
         # Complete profile of first user
         test_user1.first_name = 'test'
-        test_user1.ladt_name = 'user'
+        test_user1.last_name = 'user'
         test_user1.email = 'test_user@email.com'
         test_user1.save()
         test_user1_profile = Profile.objects.create(
@@ -557,7 +557,7 @@ class SetProfileViewTest(TestCase):
 
         # Complete profile of User1
         test_user1.first_name = 'test'
-        test_user1.ladt_name = 'user'
+        test_user1.last_name = 'user'
         test_user1.email = 'test_user@email.com'
         test_user1.save()
         test_user1_profile = Profile.objects.create(
@@ -644,7 +644,7 @@ class DeleteTimeSlotViewTest(TestCase):
 
         # Complete profile of User1 as Customer
         test_user1.first_name = 'test1'
-        test_user1.ladt_name = 'user1'
+        test_user1.last_name = 'user1'
         test_user1.email = 'test_user1@email.com'
         test_user1.save()
         test_user1_profile = Profile.objects.create(
@@ -656,7 +656,7 @@ class DeleteTimeSlotViewTest(TestCase):
 
         # Complete profile of User1 as Room Manager
         test_user2.first_name = 'test2'
-        test_user2.ladt_name = 'user2'
+        test_user2.last_name = 'user2'
         test_user2.email = 'test_user2@email.com'
         test_user2.save()
         test_user2_profile = Profile.objects.create(
@@ -742,7 +742,7 @@ class DeleteBookingViewTest(TestCase):
 
         # Complete profile of User1 as Customer
         test_user1.first_name = 'test1'
-        test_user1.ladt_name = 'user1'
+        test_user1.last_name = 'user1'
         test_user1.email = 'test_user1@email.com'
         test_user1.save()
         test_user1_profile = Profile.objects.create(
@@ -754,7 +754,7 @@ class DeleteBookingViewTest(TestCase):
 
         # Complete profile of User1 as Room Manager
         test_user2.first_name = 'test2'
-        test_user2.ladt_name = 'user2'
+        test_user2.last_name = 'user2'
         test_user2.email = 'test_user2@email.com'
         test_user2.save()
         test_user2_profile = Profile.objects.create(
