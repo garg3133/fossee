@@ -9,6 +9,7 @@ FOSSEE - Room Slot Booking
 - [Installation](#installation)
     - [Requirements](#requirements)
     - [How to run it?](#how-to-run-it)
+    - [Running Tests](#running-tests)
 - [Usage](#usage)
     - [Create an Account](#create-an-account)
     - [Login into your Account](#login-into-your-account)
@@ -28,12 +29,6 @@ FOSSEE - Room Slot Booking
         - [Update Pre-Booking Allowance](#update-pre-booking-allowance)
         - [View the Summary of all the Previous Bookings](#view-the-summary-of-all-the-previous-bookings)
         - [Update Profile](#update-profile-1)
-- [Page setup](#page-setup)
-    - [Upload the page tree file](#upload-the-page-tree-file)
-    - [Go to the import view](#go-to-the-import-view)
-    - [Import the uploaded page tree file](#import-the-uploaded-page-tree-file)
-- [License](#license)
-- [Links](#links)
 
 ## Installation
 Follow the below instructions to setup and run the app on your local machine.
