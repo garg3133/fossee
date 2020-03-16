@@ -1,5 +1,6 @@
 # Room Slot Booking
-FOSSEE - Room Slot Booking
+![FOSSEE logo](https://fossee.in/sites/all/themes/software_responsive_theme/img/logo.png)  
+Room Slot Booking Django Application for Python Screening Test Under FOSSEE 2020  
 
 ### Yaksh Account Details
 **Username**: priyansh3133  
@@ -65,6 +66,8 @@ And additional requirements are in **requirements.txt**
  
 ## Usage
 
+![2020-03-16](https://user-images.githubusercontent.com/39924567/76780868-bfb08b00-67d3-11ea-9976-944a4f916d03.png)
+
 ### Create an Account
 For using the Room Slot Booking App, you must first have an account on the application. Follow the below instructions to *create a new account*.
 
@@ -74,6 +77,9 @@ For using the Room Slot Booking App, you must first have an account on the appli
 - Click on **Sign Up** Button.
 - After successful Sign Up, you'll be redirected to **Complete your Profile** Page where you'll be asked to enter your personal details.
 - Enter the required details and click on **Continue**.
+
+![2020-03-16 (3)](https://user-images.githubusercontent.com/39924567/76780944-eb337580-67d3-11ea-9097-944ee0629cdd.png)
+![2020-03-16 (5)](https://user-images.githubusercontent.com/39924567/76781185-554c1a80-67d4-11ea-8ecc-37b8acde4c81.png)
 
 Congratulations, your account has been created successfully. You'll be automatically logged into your account and redirected to your dashboard.
 
@@ -85,6 +91,8 @@ For logging in and using the Room Slot Booking App, you must first have an accou
 - Click on the **Login** button on Homepage to get a Login modal.
 - Enter your *Username* and *Password*.
 - Click on **Sign In** button.
+
+![2020-03-16 (4)](https://user-images.githubusercontent.com/39924567/76781036-14540600-67d4-11ea-9645-acd76afe9bb2.png)
 
 After successful Login, you'll be redirected to your dashboard.
 
@@ -98,6 +106,8 @@ Only Users with **Admin** or **Superuser** privileges can promote a *User* to *R
 - Tick the **Room manager** checkbox.
 - Click on **Save** button.
 
+![2020-03-16 (6)](https://user-images.githubusercontent.com/39924567/76781352-9a704c80-67d4-11ea-89ab-94fcb1258466.png)
+
 **Note:** 
 1. While promoting a user to Room Manager, if a Room Manager already exists then he'll be automatically demoted from the Room Manager to a normal Customer. 
 2. To ensure that at no point of time the application is without a Room Manager, Room Manager cannot be demoted to a Customer until adn unless a new user is promoted to Room Manager.
@@ -105,6 +115,8 @@ Only Users with **Admin** or **Superuser** privileges can promote a *User* to *R
 
 ## User: Customer
 Customer is the user who will use the Room Slot Booking application for booking Rooms.
+
+![2020-03-16 (7)](https://user-images.githubusercontent.com/39924567/76781477-c7bcfa80-67d4-11ea-8dc5-40a902b9a825.png)
 
 ### Book Room
 To book a Room using the Room Slot Booking application, follow the steps below:
@@ -119,15 +131,24 @@ To book a Room using the Room Slot Booking application, follow the steps below:
 - Select the *Time Slot* you wish to book the selected Room for.
 - Click on the **Book** button.
 
+![2020-03-16 (8)](https://user-images.githubusercontent.com/39924567/76781697-22eeed00-67d5-11ea-893c-cb48e6aea74d.png)
+![2020-03-16 (9)](https://user-images.githubusercontent.com/39924567/76781699-25e9dd80-67d5-11ea-9f0d-e6c702fdacb0.png)
+![2020-03-16 (10)](https://user-images.githubusercontent.com/39924567/76781702-26827400-67d5-11ea-8bfe-e398969d5c92.png)
+
 ### View Bookings
 To view all your Previous Bookings, click on the **My Previous Bookings** pill on the *Dashboard*.
 
 The bookings are arranged in the order the Bookings were made (latest Booking first).
+![2020-03-16 (11)](https://user-images.githubusercontent.com/39924567/76781803-487bf680-67d5-11ea-97c7-83f3368b803d.png)
 
 Click on the Room Manager's *Username* corresponding to a Booking to know the details of the Room Manager at the time of Booking.
+![2020-03-16 (12)](https://user-images.githubusercontent.com/39924567/76781813-4ade5080-67d5-11ea-9722-509ac40e2548.png)
 
 #### Delete a Booking
 To cancel (delete) a Booking, click on the **Cancel** link corresponding to the Booking.
+
+![2020-03-16 (11)](https://user-images.githubusercontent.com/39924567/76781900-6cd7d300-67d5-11ea-91df-9a91b1aef5cf.png)
+![2020-03-16 (13)](https://user-images.githubusercontent.com/39924567/76782184-e374d080-67d5-11ea-8bf2-774fec0c663a.png)
 
 ### Update Profile
 To update your profile, follow the below steps:
@@ -136,8 +157,12 @@ To update your profile, follow the below steps:
 - Change the values to be updated in the respective fields.
 - Click on the **Update** button.
 
+![2020-03-16 (14)](https://user-images.githubusercontent.com/39924567/76782276-0f905180-67d6-11ea-8a9a-294bdb348b14.png)
+
 ## User: Room Manager
 Room Manager is the user who will manage the ongoings of the application in terms of number of rooms to be made available to the customers and the time slots for which the rooms can be booked. Plus, he can also define the number of days for which the bookings can be done in advance.
+
+![2020-03-16 (16)](https://user-images.githubusercontent.com/39924567/76782477-57af7400-67d6-11ea-8a8a-2c7c4b2599f9.png)
 
 *There can be only one Room Manager at a time.*
 
@@ -149,6 +174,8 @@ The Room Manager can view
 
 under the **Home Tab** on his dashboard.
 
+![2020-03-16 (15)](https://user-images.githubusercontent.com/39924567/76782333-2767d580-67d6-11ea-89d5-5f8dce9eb563.png)
+
 ### Update Number of Rooms
 To update number of Rooms to be made available for the Customers to book from, follow the below steps:
 
@@ -156,6 +183,8 @@ To update number of Rooms to be made available for the Customers to book from, f
 - Under **Manage Rooms** dropdown, click on **No. of Rooms**.
 - Enter the *Updated Number of Rooms* to be made available to the Customers in the text field provided (Refer to the table above for currently available Number of Rooms).
 - Click on **Update** button.
+
+![2020-03-16 (17)](https://user-images.githubusercontent.com/39924567/76782560-76156f80-67d6-11ea-8e5e-6e8463067a74.png)
 
 **Note:**
 1. If *Number of Rooms* are updated for the first time, the updated number of rooms will take effect immediately.
@@ -170,6 +199,9 @@ To update the Time Slots for which the Rooms are available to be booked, follow 
 - Under **Manage Rooms** dropdown, click on **Time Slots**.
 
 From here, you can either *add a new Time Slot* or *delete or update an existing Time Slot*.
+
+![2020-03-16 (19)](https://user-images.githubusercontent.com/39924567/76782681-aceb8580-67d6-11ea-8df5-0e523616b8fe.png)
+![2020-03-16 (18)](https://user-images.githubusercontent.com/39924567/76782747-c391dc80-67d6-11ea-8036-282069eb1a83.png)
 
 #### Add a new Time Slot
 To add a new Time Slot, continue with the following steps:
@@ -212,6 +244,8 @@ To update the Pre-Booking Allowance, follow the below steps:
 - Enter the *Updated Pre-Booking Allowance* in the text field provided (Refer to the table above for current Pre-Booking Allowance).
 - Click on **Update** button.
 
+![2020-03-16 (20)](https://user-images.githubusercontent.com/39924567/76782830-e1f7d800-67d6-11ea-9acc-4d30cedee3d4.png)
+
 Unlike the updation in Number of Rooms and Time Slots, the updation in Pre-Booking Allowance will take effect from the very moment it is updated.
 
 ### View the Summary of all the Previous Bookings
@@ -219,7 +253,12 @@ Click on the **Bookings Summary** pill on the *Dashboard* to view the Summary of
 
 The bookings are arranged in the order of Date (latest Date first) and then the ascending order of Room Number and Time Slot.
 
+![2020-03-16 (21)](https://user-images.githubusercontent.com/39924567/76782967-123f7680-67d7-11ea-922c-82475609585d.png)
+
 Click on the Customer's *Username* corresponding to a Booking to know the details of the Customer and on the Room Manager's *Username* to know the details of the Room Manager at the time of Booking.
+
+![2020-03-16 (22)](https://user-images.githubusercontent.com/39924567/76782970-14a1d080-67d7-11ea-862c-94a9d71e6a14.png)
+![2020-03-16 (23)](https://user-images.githubusercontent.com/39924567/76782978-15d2fd80-67d7-11ea-87db-19bb026b3510.png)
 
 ### Update Profile
 To update your profile, follow the below steps:
@@ -227,3 +266,5 @@ To update your profile, follow the below steps:
 - Click on **Update Profile** pill on the *Dashboard*.
 - Change the values to be updated in the respective fields.
 - Click on the **Update** button.
+
+![2020-03-16 (14)](https://user-images.githubusercontent.com/39924567/76782276-0f905180-67d6-11ea-8a9a-294bdb348b14.png)
